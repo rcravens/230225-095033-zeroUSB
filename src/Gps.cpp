@@ -34,37 +34,27 @@ namespace rlc
 
             if (_command_helper.send_command_and_wait("AT+CGPSINFO"))
             {
-                // Get new location data
                 _command_helper.last_command_response.trim();
                 if (_command_helper.last_command_response == "" || _command_helper.last_command_response.indexOf(",,,,,,,,") > 0)
                 {
-                    // No data....try again
-                    // SerialUSB.println("No location data found");
+                    // No GPS lock....try again
+                    //
                     delay(2000);
                     continue;
                 }
 
-                // SerialUSB.print("-----start processing-----[attempt=");
-                // SerialUSB.print(attempt);
-                // SerialUSB.println("]");
-
+                // Parse the location data from the response
+                //
                 int eol1 = _command_helper.last_command_response.indexOf('\n');
                 int eol2 = _command_helper.last_command_response.indexOf('\n', eol1 + 1);
                 location_data = _command_helper.last_command_response.substring(eol1 + 1, eol2);
                 location_data.trim();
-
-                // SerialUSB.println(response);
-                // SerialUSB.println(gps_data);
-
-                // SerialUSB.println("-----end processing-----");
 
                 is_refreshed = true;
                 break;
             }
         }
 
-        // end the gps session
-        //
         if (is_close_session)
         {
             _command_helper.send_command_and_wait("AT+CGPS=0");
