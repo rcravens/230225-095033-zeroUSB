@@ -1,7 +1,4 @@
 #include <Arduino.h>
-// #include <stdio.h>
-// #include <string.h>
-// #include <SPI.h>
 #include "AtCommand.h"
 #include "Hardware.h"
 #include "FileHelper.h"
