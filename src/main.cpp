@@ -12,7 +12,7 @@ unsigned long api_last_sent;
 const int api_max_points_per_post = 100;
 
 const unsigned long gps_refresh_period = 5000;
-unsigned long gps_last_resfresh;
+unsigned long gps_last_refresh;
 const char gps_file_name[] = "gps_data.csv";
 
 rlc::AtCommand command_helper(false);
@@ -61,11 +61,11 @@ void setup()
 
 void loop()
 {
-    if (millis() - gps_last_resfresh > gps_refresh_period)
+    if (millis() - gps_last_refresh > gps_refresh_period)
     {
         if (gps.current_location())
         {
-            gps_last_resfresh = millis();
+            gps_last_refresh = millis();
 
             SerialUSB.println("New GPS Data: " + gps.location_data);
 
