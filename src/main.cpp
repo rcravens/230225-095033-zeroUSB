@@ -7,11 +7,11 @@
 
 const char url[] = "https://webhook.site/6927a322-215e-4e0e-a625-ca21ee24a7e9";
 const char content_type[] = "application/x-www-form-urlencoded";
-const unsigned long api_refresh_period = 20000;
+const unsigned long api_refresh_period = 40000;
 unsigned long api_last_sent;
 const int api_max_points_per_post = 100;
 
-const unsigned long gps_refresh_period = 5000;
+const unsigned long gps_refresh_period = 40000;
 unsigned long gps_last_refresh;
 const char gps_file_name[] = "gps_data.csv";
 

@@ -92,6 +92,14 @@ namespace rlc
             }
         }
 
+        // Read any final characters (new lines...)
+        //
+        while (Serial1.available())
+        {
+            char c = Serial1.read();
+            response += c;
+        }
+
         if (this->_is_debug)
         {
             SerialUSB.print(response);
