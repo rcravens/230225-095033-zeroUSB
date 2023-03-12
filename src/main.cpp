@@ -122,6 +122,10 @@ void loop()
 
     if (can_sleep)
     {
-        sleep.mcu_delay_module_off(gps_refresh_period);
+        // High gps collection rates (< 2min) / Unlimited power
+        // sleep.mcu_delay_module_on(gps_refresh_period);
+
+        // Low gps collection rates (> 2min) / Limited power
+        sleep.mcu_deep_sleep_module_off(gps_refresh_period);
     }
 }

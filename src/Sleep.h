@@ -11,12 +11,15 @@ namespace rlc
     {
     public:
         Sleep(rlc::Hardware &hardware);
+        
         void mcu_delay_module_on(int sleep_time_ms);
         void mcu_sleep_module_on(int sleep_time_ms);
         void mcu_deep_sleep_module_on(int sleep_time_ms);
+
         void mcu_delay_module_lower_power_mode(int sleep_time_ms);
         void mcu_sleep_module_lower_power_mode(int sleep_time_ms);
         void mcu_deep_sleep_module_lower_power_mode(int sleep_time_ms);
+
         void mcu_delay_module_off(int sleep_time_ms);
         void mcu_sleep_module_off(int sleep_time_ms);
         void mcu_deep_sleep_module_off(int sleep_time_ms);
@@ -27,7 +30,7 @@ namespace rlc
         void mcu_delay(int sleep_time_ms);
         void mcu_sleep(int sleep_time_ms);
         void mcu_deep_sleep(int sleep_time_ms);
-        void module_minium_functionality();
+        void module_minimum_functionality();
         void module_full_functionality();
         void module_turn_off();
         void module_turn_on();
