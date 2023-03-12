@@ -2,9 +2,8 @@
 
 namespace rlc
 {
-    AtCommand::AtCommand(bool is_debug)
+    AtCommand::AtCommand(bool is_debug) : is_debug(is_debug)
     {
-        this->_is_debug = is_debug;
     }
 
     bool AtCommand::send_command_and_wait(String command)
@@ -52,7 +51,7 @@ namespace rlc
 
         last_command_response.trim();
 
-        if (this->_is_debug)
+        if (this->is_debug)
         {
             SerialUSB.println("----> " + command + " <----");
             SerialUSB.println(last_command_response);
@@ -100,7 +99,7 @@ namespace rlc
             response += c;
         }
 
-        if (this->_is_debug)
+        if (this->is_debug)
         {
             SerialUSB.print(response);
         }

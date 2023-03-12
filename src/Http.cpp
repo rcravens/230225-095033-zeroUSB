@@ -2,7 +2,7 @@
 
 namespace rlc
 {
-    Http::Http(rlc::AtCommand command_helper) : _command_helper(command_helper)
+    Http::Http(rlc::AtCommand &command_helper) : _command_helper(command_helper)
     {
     }
 

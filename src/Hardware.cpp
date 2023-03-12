@@ -11,15 +11,18 @@
 
 namespace rlc
 {
-    Hardware::Hardware(rlc::AtCommand command_helper) : _command_helper(command_helper)
+    Hardware::Hardware(rlc::AtCommand &command_helper) : _command_helper(command_helper)
     {
+        manufacturer = "";
+        model = "";
+        imei = "";
     }
 
     void Hardware::init()
     {
-        SerialUSB.begin(115200);
-
-        Serial1.begin(115200);
+        begin_serial_usb(10000);
+        _is_serial_usb_on_init = (bool)SerialUSB;
+        begin_serial_module();
 
         pinMode(LTE_RESET_PIN, OUTPUT);
         pinMode(LTE_PWRKEY_PIN, OUTPUT);
@@ -30,6 +33,41 @@ namespace rlc
 
         digitalWrite(LTE_FLIGHT_PIN, LOW); // LOW = Normal Mode, HIGH = Flight Mode
         delay(1000);
+    }
+
+    void Hardware::begin_serial_usb(unsigned long timeout)
+    {
+        SerialUSB.begin(115200);
+        unsigned long now = millis();
+        while ((now - millis()) < timeout && !SerialUSB)
+        {
+        }
+    }
+
+    void Hardware::end_serial_usb()
+    {
+        if (SerialUSB)
+        {
+            SerialUSB.flush();
+            SerialUSB.end();
+        }
+    }
+
+    void Hardware::begin_serial_module()
+    {
+        Serial1.begin(115200);
+        while (!Serial1)
+        {
+        }
+    }
+
+    void Hardware::end_serial_module()
+    {
+        if (Serial1)
+        {
+            Serial1.flush();
+            Serial1.end();
+        }
     }
 
     bool Hardware::init_sd()
@@ -54,16 +92,44 @@ namespace rlc
         return false;
     }
 
+    bool Hardware::is_cellular_connected()
+    {
+        return is_cellular_connected(false);
+    }
+
+    bool Hardware::is_cellular_connected(bool is_config_if_not)
+    {
+        if (_command_helper.send_command_and_wait("AT+CGREG?"))
+        {
+            if (_command_helper.last_command_response.indexOf("1,5") > 0)
+            {
+                return true;
+            }
+        }
+
+        if (is_config_if_not)
+        {
+            if (!is_module_on())
+            {
+                turn_on_module();
+            }
+            configure_module();
+
+            return is_cellular_connected(false);
+        }
+
+        return false;
+    }
+
     bool Hardware::turn_off_module()
     {
-        if (is_module_on()) // if it's off, turn on it.
+        if (is_module_on()) // if it's on, turn it off.
         {
-            digitalWrite(LTE_PWRKEY_PIN, HIGH);
-            delay(3000);
             digitalWrite(LTE_PWRKEY_PIN, LOW);
-            delay(10000);
-
-            return is_module_on() == false;
+            delay(1000);
+            _command_helper.send_command_and_wait("AT+CPOF");
+            delay(20000);
+            return true;
         }
 
         return true;
@@ -71,40 +137,67 @@ namespace rlc
 
     bool Hardware::turn_on_module()
     {
-        if (!is_module_on()) // if it's off, turn on it.
+        if (!is_module_on()) // if it's off, turn it on.
         {
             digitalWrite(LTE_PWRKEY_PIN, LOW);
-            delay(3000);
+            delay(500);
             digitalWrite(LTE_PWRKEY_PIN, HIGH);
-            delay(10000);
+            for (int i = 0; i < 40; i++)
+            {
+                if (_command_helper.send_command_and_wait("AT"))
+                {
+                    return true;
+                }
+                delay(250);
+            }
 
-            return is_module_on();
+            return false;
         }
 
         return true;
+    }
+
+    bool Hardware::set_module_in_minimum_functionality_mode()
+    {
+        return _command_helper.send_command_and_wait("AT+CFUN=0", "OK", 5000);
+    }
+
+    bool Hardware::set_module_in_full_functionality_mode()
+    {
+        return _command_helper.send_command_and_wait("AT+CFUN=1", "OK", 5000);
     }
 
     bool Hardware::configure_module()
     {
         if (is_module_on())
         {
-            _command_helper.send_command_and_wait("AT");
             _command_helper.send_command_and_wait("AT+CMEE=2");
-            if (!_command_helper.send_command_and_wait("AT+CGMI")) // request manufacturer indentification
+            if (manufacturer == "")
             {
-                return false;
+                if (!_command_helper.send_command_and_wait("AT+CGMI")) // request manufacturer indentification
+                {
+                    return false;
+                }
+                manufacturer = _command_helper.last_command_response;
             }
-            manufacturer = _command_helper.last_command_response;
-            if (!_command_helper.send_command_and_wait("AT+CGMM")) // request model identification
+
+            if (model == "")
             {
-                return false;
+                if (!_command_helper.send_command_and_wait("AT+CGMM")) // request model identification
+                {
+                    return false;
+                }
+                model = _command_helper.last_command_response;
             }
-            model = _command_helper.last_command_response;
-            if (!_command_helper.send_command_and_wait("AT+CGSN")) // request product serial number identification
+
+            if (imei == "")
             {
-                return false;
+                if (!_command_helper.send_command_and_wait("AT+CGSN")) // request product serial number identification
+                {
+                    return false;
+                }
+                imei = _command_helper.last_command_response;
             }
-            imei = _command_helper.last_command_response;
             //_command_helper.send_command_and_wait("AT+CSUB");   // request the module version and chip
             //_command_helper.send_command_and_wait("AT+CPIN?");  // request the state of the SIM card
             //_command_helper.send_command_and_wait("AT+CICCID"); // read ICCID from SIM card
@@ -112,6 +205,7 @@ namespace rlc
             //_command_helper.send_command_and_wait("AT+COPS");   // check the current network operator
             //_command_helper.send_command_and_wait("AT+IPREX?"); // check local baud rate
 
+            _command_helper.send_command_and_wait("AT+CGREG=1");
             //_command_helper.send_command_and_wait("AT+CREG?");
             _command_helper.send_command_and_wait("AT+CGATT=1");
             _command_helper.send_command_and_wait("AT+CGACT=1,1");

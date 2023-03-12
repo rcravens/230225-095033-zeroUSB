@@ -11,7 +11,7 @@ namespace rlc
     public:
         String location_data;
 
-        Gps(rlc::AtCommand command_helper);
+        Gps(rlc::AtCommand &command_helper);
         bool current_location();
         bool current_location(const int timeout, bool is_close_session);
 

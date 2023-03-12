@@ -2,7 +2,7 @@
 
 namespace rlc
 {
-    Gps::Gps(rlc::AtCommand command_helper) : _command_helper(command_helper)
+    Gps::Gps(rlc::AtCommand &command_helper) : _command_helper(command_helper)
     {
     }
 

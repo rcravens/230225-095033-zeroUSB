@@ -9,7 +9,7 @@ namespace rlc
     class Http
     {
     public:
-        Http(rlc::AtCommand command_helper);
+        Http(rlc::AtCommand &command_helper);
         bool post(String url, String content, String content_type);
  
     private:

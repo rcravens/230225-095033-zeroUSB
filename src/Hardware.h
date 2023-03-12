@@ -14,12 +14,20 @@ namespace rlc
         String model;
         String imei;
 
-        Hardware(rlc::AtCommand command_helper);
+        Hardware(rlc::AtCommand &command_helper);
         void init();
+        void begin_serial_usb(unsigned long timeout);
+        void end_serial_usb();
+        void begin_serial_module();
+        void end_serial_module();
         bool init_sd();
         bool is_module_on();
+        bool is_cellular_connected();
+        bool is_cellular_connected(bool is_config_if_not);
         bool turn_on_module();
         bool turn_off_module();
+        bool set_module_in_minimum_functionality_mode();
+        bool set_module_in_full_functionality_mode();
         bool configure_module();
         void send_module_output_to_console_out();
         void send_console_input_to_module();
@@ -27,6 +35,7 @@ namespace rlc
     private:
         rlc::AtCommand _command_helper;
         String _from_usb = "";
+        bool _is_serial_usb_on_init = false;
     };
 }
 
