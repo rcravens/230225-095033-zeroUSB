@@ -25,7 +25,7 @@ namespace rlc
 
     void Sleep::mcu_delay_module_lower_power_mode(int sleep_time_ms)
     {
-        module_minium_functionality();
+        module_minimum_functionality();
 
         mcu_delay(sleep_time_ms);
 
@@ -34,7 +34,7 @@ namespace rlc
 
     void Sleep::mcu_sleep_module_lower_power_mode(int sleep_time_ms)
     {
-        module_minium_functionality();
+        module_minimum_functionality();
 
         mcu_sleep(sleep_time_ms);
 
@@ -43,7 +43,7 @@ namespace rlc
 
     void Sleep::mcu_deep_sleep_module_lower_power_mode(int sleep_time_ms)
     {
-        module_minium_functionality();
+        module_minimum_functionality();
 
         mcu_deep_sleep(sleep_time_ms);
 
