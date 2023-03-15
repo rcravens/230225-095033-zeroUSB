@@ -126,9 +126,10 @@ namespace rlc
         if (is_module_on()) // if it's on, turn it off.
         {
             digitalWrite(LTE_PWRKEY_PIN, LOW);
-            delay(1000);
+            delay(500);
             _command_helper.send_command_and_wait("AT+CPOF");
-            delay(20000);
+            // TODO: what is the minimum that still works here?
+            //delay(500);
             return true;
         }
 

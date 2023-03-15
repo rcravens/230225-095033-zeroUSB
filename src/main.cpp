@@ -11,7 +11,7 @@ const char content_type[] = "application/x-www-form-urlencoded";
 const unsigned long api_num_gps_points_in_payload = 1;
 const int api_max_points_per_post = 20;
 
-const unsigned long gps_refresh_period = 600000;
+const unsigned long gps_refresh_period = 1000;
 const char gps_file_name[] = "gps_data.csv";
 unsigned long num_points_in_cache = 0;
 
@@ -120,7 +120,7 @@ void loop()
 
     hw.send_console_input_to_module();
 
-    if (can_sleep)
+    if (can_sleep && gps_refresh_period > 0)
     {
         // High gps collection rates (< 2min) / Unlimited power
         // sleep.mcu_delay_module_on(gps_refresh_period);
