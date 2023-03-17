@@ -126,7 +126,7 @@ namespace rlc
     {
         _ms_after_sleep = millis();
         _hardware.set_module_in_full_functionality_mode();
-        _hardware.configure_module();
+        _hardware.init_module();
         _ms_after_sleep = millis() - _ms_after_sleep;
     }
 
@@ -141,7 +141,7 @@ namespace rlc
     {
         _ms_after_sleep = millis();
         _hardware.turn_on_module();
-        _hardware.configure_module();
+        _hardware.init_module();
         _ms_after_sleep = millis() - _ms_after_sleep;
     }
 

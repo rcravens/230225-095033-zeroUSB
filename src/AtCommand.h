@@ -8,7 +8,6 @@ namespace rlc
     class AtCommand
     {
     public:
-        bool is_debug;
         String last_command_response;
         
         AtCommand(bool is_debug);
@@ -17,9 +16,12 @@ namespace rlc
         String send_data(String data, const int timeout);
         String send_data(String data);
         void set_debug_for_next_command();
+        void start_verbose();
+        void end_verbose();
 
 
     private:
+        bool _is_debug;
 
     };
 }

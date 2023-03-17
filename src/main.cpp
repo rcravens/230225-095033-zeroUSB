@@ -5,15 +5,20 @@
 #include "Gps.h"
 #include "Http.h"
 #include "Sleep.h"
+#include "Battery.h"
+#include "Sms.h"
 
 const char url[] = "https://webhook.site/6927a322-215e-4e0e-a625-ca21ee24a7e9";
 const char content_type[] = "application/x-www-form-urlencoded";
 const unsigned long api_num_gps_points_in_payload = 1;
 const int api_max_points_per_post = 20;
 
-const unsigned long gps_refresh_period = 1000;
+const unsigned long gps_refresh_period_low_battery = 3600000;
+const unsigned long gps_refresh_period_default = 60000;
 const char gps_file_name[] = "gps_data.csv";
 unsigned long num_points_in_cache = 0;
+
+const char battery_data[] = "bat_data.csv";
 
 rlc::AtCommand command_helper(false);
 rlc::Hardware hw(command_helper);
@@ -21,6 +26,8 @@ rlc::FileHelper file_helper;
 rlc::Gps gps(command_helper);
 rlc::Http http(command_helper);
 rlc::Sleep sleep(hw);
+rlc::Battery battery(3.28, 4.18, 30.0);
+rlc::Sms sms(command_helper);
 
 unsigned long total_points_sent = 0;
 
@@ -39,7 +46,7 @@ void setup()
 
     bool is_sd_ready = hw.init_sd();
     bool is_module_on = hw.turn_on_module();
-    bool is_module_configured = is_module_on && hw.configure_module();
+    bool is_module_configured = is_module_on && hw.init_module();
 
     String sd_status = is_sd_ready ? "YES" : "NO";
     String module_on_status = is_module_on ? "YES" : "NO";
@@ -60,11 +67,45 @@ void setup()
     SerialUSB.println("                  Manufacturer: " + hw.manufacturer);
     SerialUSB.println("                         Model: " + hw.model);
     SerialUSB.println("                          IMEI: " + hw.imei);
+
+    SerialUSB.println("---------------------------------------------------------------------------------------------");
+    SerialUSB.println("Battery Data");
+    unsigned int num_lines = file_helper.print_all_lines(battery_data);
+    if (num_lines > 0)
+    {
+        file_helper.remove(battery_data);
+    }
+    SerialUSB.println("---------------------------------------------------------------------------------------------");
+
+    // This is a Twilio Super SIM special SMS call that is configured
+    //  to forward the text message to the URL configured in the
+    //  Twilio console. You cannot send actual text messages using
+    //  the Twilio Super SIM.
+    //
+    // It does not matter what number you put in, the message is only
+    //  delivered to the configured URL.
+    //
+    // This has is no better than using the Http helper to send the message
+    //
+    sms.send("000", "Test message");
 }
 
 void loop()
 {
     SerialUSB.println("xxxxxx TOP OF THE LOOP xxxxxxxx");
+
+    // Monitory the current battery voltage and state of charge
+    //
+    battery.refresh();
+    String new_line = battery.to_string();
+    if (!file_helper.append(battery_data, new_line))
+    {
+        SerialUSB.println("Failed to append battery data.");
+        SerialUSB.println(new_line);
+    }
+    SerialUSB.println(battery.to_string());
+    unsigned long gps_refresh_period = battery.is_low_battery_mode() ? gps_refresh_period_low_battery : gps_refresh_period_default;
+
 
     bool can_sleep = false;
     if (gps.current_location())
@@ -92,7 +133,7 @@ void loop()
             {
                 lines.trim();
 
-                String content = "manufacturer=" + hw.manufacturer + "&model=" + hw.model + "&imei=" + hw.imei + "&total_point_since_power_on=" + String(total_points_sent + num_points_in_cache) + "&num_points=" + String(num_points_in_cache) + "&lines=" + lines;
+                String content = "millis=" + String(millis()) + "&gps_refresh_period=" + String(gps_refresh_period) + "&" + battery.to_http_post() + "&" + hw.to_http_post() + "&total_point_since_power_on=" + String(total_points_sent + num_points_in_cache) + "&num_points=" + String(num_points_in_cache) + "&lines=" + lines;
 
                 if (http.post(url, content, content_type))
                 {
@@ -122,10 +163,15 @@ void loop()
 
     if (can_sleep && gps_refresh_period > 0)
     {
-        // High gps collection rates (< 2min) / Unlimited power
-        // sleep.mcu_delay_module_on(gps_refresh_period);
-
-        // Low gps collection rates (> 2min) / Limited power
-        sleep.mcu_deep_sleep_module_off(gps_refresh_period);
+        if (gps_refresh_period < 120000)
+        {
+            // High gps collection rates (< 2min) / Unlimited power
+            sleep.mcu_delay_module_on(gps_refresh_period);
+        }
+        else
+        {
+            // Low gps collection rates (> 2min) / Limited power
+            sleep.mcu_deep_sleep_module_off(gps_refresh_period);
+        }
     }
 }

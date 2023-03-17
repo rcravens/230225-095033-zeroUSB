@@ -62,9 +62,14 @@ namespace rlc
         return lines;
     }
 
-    void FileHelper::print_lines(String file_name, int num_lines_to_print)
+    unsigned int FileHelper::print_all_lines(String file_name)
     {
-        int num_lines = 0;
+        return print_lines(file_name, UINT16_MAX);
+    }
+
+    unsigned int FileHelper::print_lines(String file_name, unsigned int num_lines_to_print)
+    {
+        unsigned int num_lines = 0;
         char c = ' ';
         if (SD.exists(file_name))
         {
@@ -92,6 +97,8 @@ namespace rlc
         {
             SerialUSB.println("File (" + file_name + ") does not exist");
         }
+
+        return num_lines;
     }
 
     bool FileHelper::copy(String source_name, String destination_name, const unsigned int skip)
@@ -171,12 +178,12 @@ namespace rlc
 
     bool FileHelper::append(String file_name, String new_line)
     {
-        File gps_data_file = SD.open(file_name, FILE_WRITE);
-        if (gps_data_file)
+        File file = SD.open(file_name, FILE_WRITE);
+        if (file)
         {
-            gps_data_file.seek(-1);
-            gps_data_file.println(new_line);
-            gps_data_file.close();
+            file.seek(-1);
+            file.println(new_line);
+            file.close();
 
             return true;
         }

@@ -34,6 +34,66 @@ namespace rlc
         digitalWrite(LTE_FLIGHT_PIN, LOW); // LOW = Normal Mode, HIGH = Flight Mode
         delay(1000);
     }
+    
+    bool Hardware::init_sd()
+    {
+        if (!SD.begin(PIN_SD_SELECT))
+        {
+            return false;
+        }
+        return true;
+    }
+
+    bool Hardware::init_module()
+    {
+        if (is_module_on())
+        {
+            _command_helper.send_command_and_wait("AT+CMEE=2");
+            if (manufacturer == "")
+            {
+                if (!_command_helper.send_command_and_wait("AT+CGMI")) // request manufacturer indentification
+                {
+                    return false;
+                }
+                manufacturer = _command_helper.last_command_response;
+            }
+
+            if (model == "")
+            {
+                if (!_command_helper.send_command_and_wait("AT+CGMM")) // request model identification
+                {
+                    return false;
+                }
+                model = _command_helper.last_command_response;
+            }
+
+            if (imei == "")
+            {
+                if (!_command_helper.send_command_and_wait("AT+CGSN")) // request product serial number identification
+                {
+                    return false;
+                }
+                imei = _command_helper.last_command_response;
+            }
+            //_command_helper.send_command_and_wait("AT+CSUB");   // request the module version and chip
+            //_command_helper.send_command_and_wait("AT+CPIN?");  // request the state of the SIM card
+            //_command_helper.send_command_and_wait("AT+CICCID"); // read ICCID from SIM card
+            //_command_helper.send_command_and_wait("AT+CNUM");   // request the subscriber number
+            //_command_helper.send_command_and_wait("AT+COPS");   // check the current network operator
+            //_command_helper.send_command_and_wait("AT+IPREX?"); // check local baud rate
+
+            _command_helper.send_command_and_wait("AT+CGREG=1");
+            //_command_helper.send_command_and_wait("AT+CREG?");
+            _command_helper.send_command_and_wait("AT+CGATT=1");
+            _command_helper.send_command_and_wait("AT+CGACT=1,1");
+            // send_command_and_wait("AT+CMFG=1"); // Sets SMS message format to TEXT mode
+            _command_helper.send_command_and_wait("AT+CGDCONT=1,\"IP\",\"super\"");
+
+            return true;
+        }
+
+        return false;
+    }
 
     void Hardware::begin_serial_usb(unsigned long timeout)
     {
@@ -70,15 +130,6 @@ namespace rlc
         }
     }
 
-    bool Hardware::init_sd()
-    {
-        if (!SD.begin(PIN_SD_SELECT))
-        {
-            return false;
-        }
-        return true;
-    }
-
     bool Hardware::is_module_on()
     {
         for (int i = 0; i < 5; i++)
@@ -113,7 +164,7 @@ namespace rlc
             {
                 turn_on_module();
             }
-            configure_module();
+            init_module();
 
             return is_cellular_connected(false);
         }
@@ -168,57 +219,6 @@ namespace rlc
         return _command_helper.send_command_and_wait("AT+CFUN=1", "OK", 5000);
     }
 
-    bool Hardware::configure_module()
-    {
-        if (is_module_on())
-        {
-            _command_helper.send_command_and_wait("AT+CMEE=2");
-            if (manufacturer == "")
-            {
-                if (!_command_helper.send_command_and_wait("AT+CGMI")) // request manufacturer indentification
-                {
-                    return false;
-                }
-                manufacturer = _command_helper.last_command_response;
-            }
-
-            if (model == "")
-            {
-                if (!_command_helper.send_command_and_wait("AT+CGMM")) // request model identification
-                {
-                    return false;
-                }
-                model = _command_helper.last_command_response;
-            }
-
-            if (imei == "")
-            {
-                if (!_command_helper.send_command_and_wait("AT+CGSN")) // request product serial number identification
-                {
-                    return false;
-                }
-                imei = _command_helper.last_command_response;
-            }
-            //_command_helper.send_command_and_wait("AT+CSUB");   // request the module version and chip
-            //_command_helper.send_command_and_wait("AT+CPIN?");  // request the state of the SIM card
-            //_command_helper.send_command_and_wait("AT+CICCID"); // read ICCID from SIM card
-            //_command_helper.send_command_and_wait("AT+CNUM");   // request the subscriber number
-            //_command_helper.send_command_and_wait("AT+COPS");   // check the current network operator
-            //_command_helper.send_command_and_wait("AT+IPREX?"); // check local baud rate
-
-            _command_helper.send_command_and_wait("AT+CGREG=1");
-            //_command_helper.send_command_and_wait("AT+CREG?");
-            _command_helper.send_command_and_wait("AT+CGATT=1");
-            _command_helper.send_command_and_wait("AT+CGACT=1,1");
-            // send_command_and_wait("AT+CMFG=1"); // Sets SMS message format to TEXT mode
-            _command_helper.send_command_and_wait("AT+CGDCONT=1,\"IP\",\"super\"");
-
-            return true;
-        }
-
-        return false;
-    }
-
     void Hardware::send_module_output_to_console_out()
     {
         while (Serial1.available() > 0)
@@ -252,4 +252,8 @@ namespace rlc
         }
     }
 
+    String Hardware::to_http_post()
+    {
+        return "&manufacturer=" + manufacturer + "&model=" + model + "&imei=" + imei;
+    }
 }

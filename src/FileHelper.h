@@ -12,7 +12,8 @@ namespace rlc
         String last_error;
 
         String strip_lines_from_top(String file_name, int num_lines_to_strip);
-        void print_lines(String file_name, int num_lines_to_print);
+        unsigned int print_all_lines(String file_name);
+        unsigned int print_lines(String file_name, unsigned int num_lines_to_print);
         bool copy(String source_name, String destination_name, const unsigned int skip);
         bool append(String file_name, String new_line);
         bool remove(String file_name);
