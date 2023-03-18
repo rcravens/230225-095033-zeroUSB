@@ -14,7 +14,7 @@ namespace rlc
 
         void refresh();
 
-        unsigned long millis() { return _millis; }
+        unsigned long timestamp_ms() { return _millis; }
         int adc_value() { return _adc_value; }
         float voltage() { return _current_voltage; }
         float percentage() { return _current_percent; }

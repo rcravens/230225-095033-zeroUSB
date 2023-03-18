@@ -13,8 +13,8 @@ const char content_type[] = "application/x-www-form-urlencoded";
 const unsigned long api_num_gps_points_in_payload = 1;
 const int api_max_points_per_post = 20;
 
-const unsigned long gps_refresh_period_low_battery = 3600000;
-const unsigned long gps_refresh_period_default = 60000;
+const unsigned long gps_refresh_period_low_battery = 600000; //3600000;
+const unsigned long gps_refresh_period_default = 600000;
 const char gps_file_name[] = "gps_data.csv";
 unsigned long num_points_in_cache = 0;
 
@@ -26,7 +26,7 @@ rlc::FileHelper file_helper;
 rlc::Gps gps(command_helper);
 rlc::Http http(command_helper);
 rlc::Sleep sleep(hw);
-rlc::Battery battery(3.28, 4.18, 30.0);
+rlc::Battery battery(3.3, 4.2, 30.0);
 rlc::Sms sms(command_helper);
 
 unsigned long total_points_sent = 0;
@@ -71,7 +71,7 @@ void setup()
     SerialUSB.println("---------------------------------------------------------------------------------------------");
     SerialUSB.println("Battery Data");
     unsigned int num_lines = file_helper.print_all_lines(battery_data);
-    if (num_lines > 0)
+    if (true)
     {
         file_helper.remove(battery_data);
     }
@@ -97,7 +97,7 @@ void loop()
     // Monitory the current battery voltage and state of charge
     //
     battery.refresh();
-    String new_line = battery.to_string();
+    String new_line = battery.to_csv();
     if (!file_helper.append(battery_data, new_line))
     {
         SerialUSB.println("Failed to append battery data.");
@@ -106,7 +106,8 @@ void loop()
     SerialUSB.println(battery.to_string());
     unsigned long gps_refresh_period = battery.is_low_battery_mode() ? gps_refresh_period_low_battery : gps_refresh_period_default;
 
-
+    // Collect the current location
+    //
     bool can_sleep = false;
     if (gps.current_location())
     {
@@ -123,6 +124,8 @@ void loop()
         }
     }
 
+    // Post to API if we have collected enough location points
+    //
     SerialUSB.println("Number of points in cache=" + String(num_points_in_cache));
     if (num_points_in_cache >= api_num_gps_points_in_payload)
     {
@@ -157,10 +160,19 @@ void loop()
         }
     }
 
+    // Inter serial port communications
+    //
     hw.send_module_output_to_console_out();
 
     hw.send_console_input_to_module();
 
+
+    // This is just for battery testing ***** DELETE ME********
+    delay(gps_refresh_period);
+    return;
+
+    // Sleep
+    //
     if (can_sleep && gps_refresh_period > 0)
     {
         if (gps_refresh_period < 120000)
