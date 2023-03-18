@@ -2,7 +2,9 @@
 
 namespace rlc
 {
-    Battery::Battery(float zero_percent_voltage, float max_voltage, float low_battery_mode_percent) : _zero_percent_voltage(zero_percent_voltage), _max_voltage(max_voltage)
+    Battery::Battery(float zero_percent_voltage, float max_voltage, float low_battery_mode_percent) : _zero_percent_voltage(zero_percent_voltage),
+                                                                                                      _max_voltage(max_voltage),
+                                                                                                      _low_battery_mode_percent(low_battery_mode_percent)
     {
         pinMode(LED_BUILTIN, OUTPUT);
 
@@ -37,11 +39,15 @@ namespace rlc
         compute_percent();
     }
 
+    /*------------------------------------------------------------------------------------------
+            PRIVATE METHODS
+    ------------------------------------------------------------------------------------------*/
+
     void Battery::sample_adc()
     {
-        // Maduino board has a voltage divider (2 1Mohm resisters) connected to the batter and the center point connected to A1
+        // Maduino board has a voltage divider (2, 1 Mohm resisters) connected to the batter and the center point connected to A1
         //
-        _adc_value = analogRead(A1); // 0 to 4095 corresponding to 0 to _battery_voltage_ref/2
+        _adc_value = analogRead(A1); // 12bit mode, 0 to 4095 corresponding to 0 to _battery_voltage_ref/2
 
         // The voltage divider would result in an ideal factor = 2, but since there is 1% tolerance on the resistors
         //  the actual factor is not exactly 2. Here we compute an actual factor. This is board dependent
@@ -68,15 +74,7 @@ namespace rlc
         Notes:
             LP603449 3.7V, 1100mAh, 4.1Wh batter
                 - max voltage after charging = 4.2
-                - min voltage before shut off = 3.28
-
-            AP7361C-33FGE (voltage regulator)
-                - output voltage = 3.3V
-                - max output current = 1A
-                - max input voltage = 6V
-                - drop out voltage = 0.36V
-                    ---> min input voltage = 3.3 + 0.36 = 3.66 V
-                    based on above then the predicted adc cutoff value = 3.66 * 4095 / (1.984636 * 3.3) = 2288.4
+                - min voltage before shut off = 3.26
 
             measured cutoff = 2044  ---> 3.26V
 
