@@ -13,7 +13,7 @@ const char content_type[] = "application/x-www-form-urlencoded";
 const unsigned long api_num_gps_points_in_payload = 1;
 const int api_max_points_per_post = 20;
 
-const unsigned long gps_refresh_period_low_battery = 600000; //3600000;
+const unsigned long gps_refresh_period_low_battery = 3600000;
 const unsigned long gps_refresh_period_default = 600000;
 const char gps_file_name[] = "gps_data.csv";
 unsigned long num_points_in_cache = 0;
@@ -83,7 +83,7 @@ void loop()
 {
     SerialUSB.println("xxxxxx TOP OF THE LOOP xxxxxxxx");
 
-    // Monitory the current battery voltage and state of charge
+    // Monitor the current battery voltage and state of charge
     //
     battery.refresh();
     String new_line = battery.to_csv();
@@ -100,6 +100,7 @@ void loop()
     if(battery.is_low_battery_mode() && !has_entered_low_power_mode)
     {
         sms.send("000", "Switched to low power mode. Come find me and swap batteries.");
+        has_entered_low_power_mode = true;
     }
 
     // Collect the current location
@@ -162,16 +163,11 @@ void loop()
 
     hw.send_console_input_to_module();
 
-
-    // This is just for battery testing ***** DELETE ME********
-    delay(gps_refresh_period);
-    return;
-
     // Sleep
     //
     if (can_sleep && gps_refresh_period > 0)
     {
-        if (gps_refresh_period < 120000)
+        if (gps_refresh_period < 120000 && !battery.is_low_battery_mode())
         {
             // High gps collection rates (< 2min) / Unlimited power
             sleep.mcu_delay_module_on(gps_refresh_period);

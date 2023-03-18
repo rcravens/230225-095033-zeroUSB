@@ -6,11 +6,9 @@ namespace rlc
                                                                                                       _max_voltage(max_voltage),
                                                                                                       _low_battery_mode_percent(low_battery_mode_percent)
     {
-        pinMode(LED_BUILTIN, OUTPUT);
-
         analogReference(AR_DEFAULT);
 
-        analogReadResolution(12);
+        analogReadResolution(12);   // 2^12 = 4096 (0 - 4095)
 
         refresh();
     }
@@ -47,7 +45,11 @@ namespace rlc
     {
         // Maduino board has a voltage divider (2, 1 Mohm resisters) connected to the batter and the center point connected to A1
         //
-        _adc_value = analogRead(A1); // 12bit mode, 0 to 4095 corresponding to 0 to _battery_voltage_ref/2
+        _adc_value = analogRead(A1); // 12bit mode, 0 to 4095 corresponding to 0 to 3.3v (ADC reference voltage)
+
+        //  _adc_value = (vbat / 2)*(4095/3.3)
+        //
+        //  vbat = 2 * _adc_value * 3.3 / 4095
 
         // The voltage divider would result in an ideal factor = 2, but since there is 1% tolerance on the resistors
         //  the actual factor is not exactly 2. Here we compute an actual factor. This is board dependent
@@ -56,11 +58,13 @@ namespace rlc
         // 3.88V multimeter = 2426 adc value
         //
         // float factor = 2.0 // use the default
-        float factor = 1.984636; // 3.88 * 4095 / (_max_voltage * 2426);
+        const float factor = 2.0; //1.984636;              // 3.88 * 4095 / (3.3 * 2426);
 
-        float adc_reference_voltage = 3.3; // TODO: does droop as the battery voltage drops?
+        const float adc_reference_voltage = 3.3;    // TODO: does droop as the battery voltage drops?
 
-        _current_voltage = factor * _adc_value * adc_reference_voltage / 4095;
+        const int number_of_levels = 4095;          // 2^12
+
+        _current_voltage = factor * _adc_value * adc_reference_voltage / number_of_levels;
     }
 
     void Battery::compute_percent()
