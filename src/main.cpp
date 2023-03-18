@@ -30,6 +30,7 @@ rlc::Battery battery(3.3, 4.2, 30.0);
 rlc::Sms sms(command_helper);
 
 unsigned long total_points_sent = 0;
+bool has_entered_low_power_mode = false;
 
 void setup()
 {
@@ -70,24 +71,12 @@ void setup()
 
     SerialUSB.println("---------------------------------------------------------------------------------------------");
     SerialUSB.println("Battery Data");
-    unsigned int num_lines = file_helper.print_all_lines(battery_data);
+    file_helper.print_all_lines(battery_data);
     if (true)
     {
         file_helper.remove(battery_data);
     }
     SerialUSB.println("---------------------------------------------------------------------------------------------");
-
-    // This is a Twilio Super SIM special SMS call that is configured
-    //  to forward the text message to the URL configured in the
-    //  Twilio console. You cannot send actual text messages using
-    //  the Twilio Super SIM.
-    //
-    // It does not matter what number you put in, the message is only
-    //  delivered to the configured URL.
-    //
-    // This has is no better than using the Http helper to send the message
-    //
-    sms.send("000", "Test message");
 }
 
 void loop()
@@ -104,7 +93,14 @@ void loop()
         SerialUSB.println(new_line);
     }
     SerialUSB.println(battery.to_string());
+
+    // Low power mode options
+    //
     unsigned long gps_refresh_period = battery.is_low_battery_mode() ? gps_refresh_period_low_battery : gps_refresh_period_default;
+    if(battery.is_low_battery_mode() && !has_entered_low_power_mode)
+    {
+        sms.send("000", "Switched to low power mode. Come find me and swap batteries.");
+    }
 
     // Collect the current location
     //
