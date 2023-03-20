@@ -9,8 +9,8 @@ namespace rlc
     {
     public:
         String last_command_response;
-        
-        AtCommand(bool is_debug);
+
+        AtCommand(Uart at_serial, Serial_ monitor_serial, bool is_debug);
         bool send_command_and_wait(String command, String desired_response, const int timeout);
         bool send_command_and_wait(String command);
         String send_data(String data, const int timeout);
@@ -19,10 +19,10 @@ namespace rlc
         void start_verbose();
         void end_verbose();
 
-
     private:
+        Uart _at_serial;
+        Serial_ _monitor_serial;
         bool _is_debug;
-
     };
 }
 

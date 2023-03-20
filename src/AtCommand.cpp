@@ -2,7 +2,7 @@
 
 namespace rlc
 {
-    AtCommand::AtCommand(bool is_debug) : _is_debug(is_debug)
+    AtCommand::AtCommand(Uart at_serial, Serial_ monitor_serial, bool is_debug) : _at_serial(at_serial), _monitor_serial(monitor_serial), _is_debug(is_debug)
     {
     }
 
@@ -26,16 +26,16 @@ namespace rlc
         bool is_desired_response = false;
         last_command_response = "";
 
-        Serial1.println(command);
+        _at_serial.println(command);
 
         // Watch for desired response
         //
         unsigned long time = millis();
         while ((time + timeout) > millis() && !is_desired_response)
         {
-            while (Serial1.available())
+            while (_at_serial.available())
             {
-                char c = Serial1.read();
+                char c = _at_serial.read();
                 last_command_response += c;
             }
 
@@ -44,9 +44,9 @@ namespace rlc
 
         // Read any final characters (new lines...)
         //
-        while (Serial1.available())
+        while (_at_serial.available())
         {
-            char c = Serial1.read();
+            char c = _at_serial.read();
             last_command_response += c;
         }
 
@@ -63,8 +63,8 @@ namespace rlc
 
         if (_is_debug)
         {
-            SerialUSB.println("----> " + command + " <----");
-            SerialUSB.println(last_command_response);
+            _monitor_serial.println("----> " + command + " <----");
+            _monitor_serial.println(last_command_response);
         }
 
         return is_desired_response;
@@ -80,38 +80,38 @@ namespace rlc
         String response = "";
         if (data.equals("1A") || data.equals("1a"))
         {
-            SerialUSB.println();
-            SerialUSB.println("Get a 1A, input a 0x1A");
+            _monitor_serial.println();
+            _monitor_serial.println("Get a 1A, input a 0x1A");
 
             // Serial1.write(0x1A);
-            Serial1.write(26);
-            Serial1.println();
+            _at_serial.write(26);
+            _at_serial.println();
             return "";
         }
 
-        Serial1.println(data);
+        _at_serial.println(data);
 
         unsigned long time = millis();
         while ((time + timeout) > millis())
         {
-            while (Serial1.available())
+            while (_at_serial.available())
             {
-                char c = Serial1.read();
+                char c = _at_serial.read();
                 response += c;
             }
         }
 
         // Read any final characters (new lines...)
         //
-        while (Serial1.available())
+        while (_at_serial.available())
         {
-            char c = Serial1.read();
+            char c = _at_serial.read();
             response += c;
         }
 
         if (_is_debug)
         {
-            SerialUSB.print(response);
+            _monitor_serial.print(response);
         }
 
         return response;

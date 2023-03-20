@@ -20,7 +20,7 @@ unsigned long num_points_in_cache = 0;
 
 const char battery_data[] = "bat_data.csv";
 
-rlc::AtCommand command_helper(false);
+rlc::AtCommand command_helper(Serial1, SerialUSB, false);
 rlc::Hardware hw(command_helper);
 rlc::FileHelper file_helper;
 rlc::Gps gps(command_helper);
