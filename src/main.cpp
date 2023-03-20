@@ -7,20 +7,24 @@
 #include "Sleep.h"
 #include "Battery.h"
 #include "Sms.h"
+#include "DateTime.h"
+#include "GpsPoint.h"
+#include "MyMath.h"
 
 const char url[] = "https://webhook.site/6927a322-215e-4e0e-a625-ca21ee24a7e9";
 const char content_type[] = "application/x-www-form-urlencoded";
-const unsigned long api_num_gps_points_in_payload = 1;
-const int api_max_points_per_post = 20;
+const unsigned long api_num_gps_points_in_payload = 30;
+const int api_max_points_per_post = 60;
 
 const unsigned long gps_refresh_period_low_battery = 3600000;
-const unsigned long gps_refresh_period_default = 600000;
+const unsigned long gps_refresh_period_default = 10000;
+const float gps_distance_threshold_feet = 25.0;
 const char gps_file_name[] = "gps_data.csv";
 unsigned long num_points_in_cache = 0;
 
 const char battery_data[] = "bat_data.csv";
 
-rlc::AtCommand command_helper(Serial1, SerialUSB, false);
+rlc::AtCommand command_helper(false);
 rlc::Hardware hw(command_helper);
 rlc::FileHelper file_helper;
 rlc::Gps gps(command_helper);
@@ -31,6 +35,9 @@ rlc::Sms sms(command_helper);
 
 unsigned long total_points_sent = 0;
 bool has_entered_low_power_mode = false;
+
+rlc::GpsPoint last_point;
+rlc::GpsPoint new_point;
 
 void setup()
 {
@@ -81,23 +88,24 @@ void setup()
 
 void loop()
 {
+    SerialUSB.println("---------------------------------------------------------------------------------------------");
     SerialUSB.println("xxxxxx TOP OF THE LOOP xxxxxxxx");
 
     // Monitor the current battery voltage and state of charge
     //
     battery.refresh();
-    String new_line = battery.to_csv();
+    /*String new_line = battery.to_csv();
     if (!file_helper.append(battery_data, new_line))
     {
         SerialUSB.println("Failed to append battery data.");
         SerialUSB.println(new_line);
-    }
+    }*/
     SerialUSB.println(battery.to_string());
 
     // Low power mode options
     //
     unsigned long gps_refresh_period = battery.is_low_battery_mode() ? gps_refresh_period_low_battery : gps_refresh_period_default;
-    if(battery.is_low_battery_mode() && !has_entered_low_power_mode)
+    if (battery.is_low_battery_mode() && !has_entered_low_power_mode)
     {
         sms.send("000", "Switched to low power mode. Come find me and swap batteries.");
         has_entered_low_power_mode = true;
@@ -108,16 +116,45 @@ void loop()
     bool can_sleep = false;
     if (gps.current_location())
     {
-        SerialUSB.println("New GPS Data: " + gps.location_data);
+        // SerialUSB.println("New GPS Data: " + gps.location_data);
 
-        if (!file_helper.append(gps_file_name, gps.location_data))
+        last_point.copy(new_point);
+
+        rlc::GpsPoint np = rlc::GpsPoint::from_gps_str(gps.location_data);
+        new_point.copy(np);
+        SerialUSB.println("New GPS Data: " + new_point.to_string());
+
+        double distance_moved_in_feet = gps_distance_threshold_feet + 1.0;
+
+        if (new_point.is_valid && last_point.is_valid)
         {
-            SerialUSB.println("Failed to cache new point.");
+            double distance_moved_in_miles = new_point.distance_in_miles(last_point);
+            distance_moved_in_feet = rlc::MyMath::convert_miles_to_feet(distance_moved_in_miles);
+            SerialUSB.println("Distance (mi): " + String(distance_moved_in_miles, 6));
+            SerialUSB.println("Distance (ft): " + String(distance_moved_in_feet, 6));
         }
-        else
+
+        // Only cache points where the distance moved is larger than the threshold
+        //  - for api_num_gps_points_in_payload > 1 this will conserve battery by minimizing LTE transmit power
+        //
+        if (new_point.is_valid)
         {
-            num_points_in_cache += 1;
-            can_sleep = true;
+            if (distance_moved_in_feet >= gps_distance_threshold_feet)
+            {
+                if (!file_helper.append(gps_file_name, gps.location_data))
+                {
+                    SerialUSB.println("Failed to cache new point.");
+                }
+                else
+                {
+                    num_points_in_cache += 1;
+                    can_sleep = true;
+                }
+            }
+            else
+            {
+                can_sleep = true;
+            }
         }
     }
 
