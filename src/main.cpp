@@ -10,6 +10,7 @@
 #include "Sms.h"
 #include "DateTime.h"
 #include "GpsPoint.h"
+#include "GpsCalculator.h"
 #include "MyMath.h"
 
 const char content_type[] = "application/x-www-form-urlencoded";
@@ -33,6 +34,8 @@ bool has_entered_low_power_mode = false;
 
 rlc::GpsPoint last_point_cached;
 rlc::GpsPoint new_point;
+float total_distance_traveled_feet = 0;
+float distance_since_last_post_feet = 0;
 
 void setup()
 {
@@ -103,7 +106,7 @@ void loop()
 
     // Low power mode options
     //
-    unsigned long gps_refresh_period = battery.is_low_battery_mode() ? rlc::Config::gps_refresh_period_low_battery : rlc::Config::gps_refresh_period_default;
+    unsigned long gps_refresh_period = battery.is_low_battery_mode() ? rlc::Config::gps_refresh_period_low_battery_ms : rlc::Config::gps_refresh_period_default_ms;
     if (battery.is_low_battery_mode() && !has_entered_low_power_mode)
     {
         sms.send("000", "Switched to low power mode. Come find me and swap batteries.");
@@ -118,20 +121,6 @@ void loop()
         new_point.copy(gps.last_gps_point);
         SerialUSB.println("New GPS Data: " + new_point.to_string());
 
-        double distance_moved_in_feet = rlc::Config::gps_distance_threshold_feet + 1.0; // Will force first point to be cached
-
-        long seconds_since_last_point_cached = rlc::Config::gps_max_time_threshold_seconds + 1; // Will force first point to be cached
-
-        if (new_point.is_valid && last_point_cached.is_valid)
-        {
-            double distance_moved_in_miles = new_point.distance_in_miles(last_point_cached);
-            distance_moved_in_feet = rlc::MyMath::convert_miles_to_feet(distance_moved_in_miles);
-            SerialUSB.println("Distance (mi): " + String(distance_moved_in_miles, 6));
-            SerialUSB.println("Distance (ft): " + String(distance_moved_in_feet, 6));
-
-            seconds_since_last_point_cached = new_point.datetime.diff_in_seconds(last_point_cached.datetime);
-        }
-
         // Only cache new points if
         //  1. the distance moved from the last point exceeds the distance threshold
         //  2. the time since the last point was cached exceeds the time threshold
@@ -140,7 +129,9 @@ void loop()
         //
         if (new_point.is_valid)
         {
-            if (distance_moved_in_feet >= rlc::Config::gps_distance_threshold_feet || seconds_since_last_point_cached >= rlc::Config::gps_max_time_threshold_seconds)
+            rlc::GpsCalculator calc(new_point, last_point_cached);
+
+            if (!last_point_cached.is_valid || calc.distance_in_feet >= rlc::Config::gps_distance_threshold_feet || calc.time_diff_in_seconds >= rlc::Config::gps_max_time_threshold_seconds)
             {
                 String new_line = new_point.to_string();
                 if (!file_helper.append(gps_data_file_name, new_line))
@@ -150,14 +141,28 @@ void loop()
                 else
                 {
                     last_point_cached.copy(new_point);
+
+                    total_distance_traveled_feet += calc.distance_in_feet;
+                    distance_since_last_post_feet += calc.distance_in_feet;
+
                     num_points_in_cache += 1;
+
                     can_sleep = true;
                 }
             }
             else
             {
                 SerialUSB.println("New point not far enough away from previously recorded point.");
+
                 can_sleep = true;
+            }
+
+            // Adjust the refresh period based on velocity
+            //
+            if(calc.is_valid)
+            {
+                SerialUSB.println("Adjust gps refresh period based on current velocity = " + String(calc.velocity_in_feet_per_second,2) + "ft/s = " + String(calc.velocity_in_miles_per_hour, 2) + "mi/hr");
+                gps_refresh_period = battery.is_low_battery_mode() ? rlc::Config::gps_refresh_period_low_battery_ms : calc.recommended_gps_refresh_period_ms;
             }
         }
     }
@@ -175,13 +180,15 @@ void loop()
             {
                 lines.trim();
 
-                String content = "millis=" + String(millis()) + "&gps_refresh_period=" + String(gps_refresh_period) + "&" + battery.to_http_post() + "&" + hw.to_http_post() + "&total_points_since_power_on=" + String(total_points_sent + num_points_in_cache) + "&num_points=" + String(num_points_in_cache) + "&lines=" + lines;
+                String content = "millis=" + String(millis()) + "&gps_refresh_period=" + String(gps_refresh_period) + "&" + battery.to_http_post() + "&" + hw.to_http_post() + "&total_distance_traveled_feet=" + String(total_distance_traveled_feet, 2) + "&distance_since_last_post_feet=" + String(distance_since_last_post_feet, 2) + "&total_points_since_power_on=" + String(total_points_sent + num_points_in_cache) + "&num_points=" + String(num_points_in_cache) + "&lines=" + lines;
 
                 if (http.post(rlc::Config::api_url, content, content_type))
                 {
                     SerialUSB.println("API - " + String(content.length()) + " bytes sent");
 
                     total_points_sent += num_points_in_cache;
+
+                    distance_since_last_post_feet = 0;
 
                     num_points_in_cache = 0;
                 }
@@ -211,7 +218,6 @@ void loop()
 
     // Sleep
     //
-    SerialUSB.println("\n");
     if (can_sleep && gps_refresh_period > 0)
     {
         if (gps_refresh_period < 120000 && !battery.is_low_battery_mode())

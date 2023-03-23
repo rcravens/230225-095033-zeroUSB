@@ -30,8 +30,6 @@ namespace rlc
         bool copy(GpsPoint &pt);
 
     private:
-        double haversine_calculation(double lat1, double lng1, double lat2, double lng2, double earth_radius);
-
         bool validate();
     };
 }

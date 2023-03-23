@@ -1,4 +1,5 @@
 #include "GpsPoint.h"
+#include "GpsCalculator.h"
 
 namespace rlc
 {
@@ -121,30 +122,13 @@ namespace rlc
 
     double GpsPoint::distance_in_miles(GpsPoint &from)
     {
-        return haversine_calculation(latitude, longitude, from.latitude, from.longitude, MyMath::earth_radius_in_miles);
+        GpsCalculator calc(*this, from);
+        return calc.distance_in_miles;
     }
 
     /*------------------------------------------------------------------------------------------
             PRIVATE METHODS
     ------------------------------------------------------------------------------------------*/
-
-    double GpsPoint::haversine_calculation(double lat1, double lng1, double lat2, double lng2, double earth_radius)
-    {
-        double lat_delta = MyMath::convert_degrees_to_radians(lat2 - lat1);
-        double lng_delta = MyMath::convert_degrees_to_radians(lng2 - lng1);
-
-        double lat1_rad = MyMath::convert_degrees_to_radians(lat1);
-        double lat2_rad = MyMath::convert_degrees_to_radians(lat2);
-
-        double a = pow(sin(lat_delta / 2), 2) + cos(lat1_rad) * cos(lat2_rad) * pow(sin(lng_delta / 2), 2);
-
-        double c = 2 * atan2(sqrt(a), sqrt(1 - a));
-
-        double d = earth_radius * c;
-
-        return d;
-    }
-
 
     bool GpsPoint::validate()
     {

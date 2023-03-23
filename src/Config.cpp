@@ -23,7 +23,7 @@ namespace rlc
 
     // The number of points that are cached before sending to the API
     //
-    const unsigned long Config::api_num_gps_points_in_payload = 5;
+    const unsigned long Config::api_num_gps_points_in_payload = 1;
 
     // Max number of points in each API payload
     //
@@ -31,17 +31,21 @@ namespace rlc
 
 
 
-    // The default refresh period (ms) for gps data collection
+    // The smallest refresh period (ms) for gps data collection. This is used as a lower bound for the computed recommendation.
     //
-    const unsigned long Config::gps_refresh_period_default = 10000;
+    const unsigned long Config::gps_refresh_period_smallest_ms = 1000;
+
+    // The default refresh period (ms) for gps data collection. This is used as an upper bound for the computed recommendation.
+    //
+    const unsigned long Config::gps_refresh_period_default_ms = 60000;
 
     // The low battery mode refresh period (ms) for gps data collection
     //
-    const unsigned long Config::gps_refresh_period_low_battery = 3600000;
+    const unsigned long Config::gps_refresh_period_low_battery_ms = 3600000;
 
     // The minimum distance (ft) between the last cached point and a new point before it is cached
     //
-    const float Config::gps_distance_threshold_feet = 0.02;
+    const float Config::gps_distance_threshold_feet = 5.0;
 
     // The maximum time (s) between the last cached point and the new point regardless of distance
     //
