@@ -149,13 +149,13 @@ namespace rlc
     {
         int adjusted_sleep = sleep_time_ms - _ms_before_sleep - _ms_after_sleep;
         SerialUSB.println("Desired Sleep Interval (ms) = " + String(sleep_time_ms) + ", Actual sleep (ms) = " + String(adjusted_sleep) + ", Pre-nap (ms) = " + String(_ms_before_sleep) + ", Post-nap (ms) = " + String(_ms_after_sleep));
-        SerialUSB.print("Good night...");
+        SerialUSB.print("Good night...ZZZZZ");
 
         return adjusted_sleep;
     }
 
     void Sleep::post_sleep()
     {
-        SerialUSB.println("i'm awake!");
+        SerialUSB.println("...i'm awake!");
     }
 }

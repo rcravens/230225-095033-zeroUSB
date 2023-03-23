@@ -1,0 +1,50 @@
+#include "Config.h"
+
+namespace rlc
+{
+
+    // The smallest voltage (v) where the board no longer functions
+    //
+    const float Config::battery_zero_point_voltage = 3.3;
+
+    // The max battery voltage (v) when the battery is fully charged
+    //
+    const float Config::battery_max_voltage = 4.2;
+
+    // The battery percent below which the battery is considered in low batter mode
+    //
+    const float Config::battery_low_mode_percent = 5.0;
+
+
+
+    // The API URL where data will be HTTP POSTed to
+    //
+    const char Config::api_url[] = "https://webhook.site/6927a322-215e-4e0e-a625-ca21ee24a7e9";
+
+    // The number of points that are cached before sending to the API
+    //
+    const unsigned long Config::api_num_gps_points_in_payload = 5;
+
+    // Max number of points in each API payload
+    //
+    const int Config::api_max_points_per_post = 60;
+
+
+
+    // The default refresh period (ms) for gps data collection
+    //
+    const unsigned long Config::gps_refresh_period_default = 10000;
+
+    // The low battery mode refresh period (ms) for gps data collection
+    //
+    const unsigned long Config::gps_refresh_period_low_battery = 3600000;
+
+    // The minimum distance (ft) between the last cached point and a new point before it is cached
+    //
+    const float Config::gps_distance_threshold_feet = 0.02;
+
+    // The maximum time (s) between the last cached point and the new point regardless of distance
+    //
+    const float Config::gps_max_time_threshold_seconds = 120;
+
+}

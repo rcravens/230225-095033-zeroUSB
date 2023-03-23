@@ -2,6 +2,7 @@
 #define DateTime_h
 
 #include <Arduino.h>
+#include <TimeLib.h>
 
 namespace rlc
 {
@@ -22,19 +23,18 @@ namespace rlc
 
         bool set(unsigned int year, unsigned int month, unsigned int day, unsigned int hour, unsigned int minute, unsigned int second);
 
+        long to_seconds();
+
+        long diff_in_seconds(DateTime &ref);
+
         String to_date_string();
         String to_time_string();
         String to_date_time_string();
+        String to_timestamp_string();
         String month_string();
 
     private:
         bool validate();
     };
 }
-
-//+CGPSINFO:
-// 4300.413127,N,
-// 08932.250075,W,
-// 200323,170018.0,  = DDMMYY,HHMMSS
-// 342.7,0.0,55.5
 #endif

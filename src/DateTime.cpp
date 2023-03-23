@@ -27,6 +27,24 @@ namespace rlc
         return validate();
     }
 
+    long DateTime::to_seconds()
+    {
+        tmElements_t tm;
+        tm.Year = year - 1970;
+        tm.Month = month;
+        tm.Day = day;
+        tm.Hour = hour;
+        tm.Minute = minute;
+        tm.Second = second;
+
+        return makeTime(tm);
+    }
+
+    long DateTime::diff_in_seconds(DateTime &ref)
+    {
+        return to_seconds() - ref.to_seconds();
+    }
+
     String DateTime::to_date_string()
     {
         if (!is_valid)
@@ -57,6 +75,11 @@ namespace rlc
         }
 
         return to_date_string() + " " + to_time_string();
+    }
+
+    String DateTime::to_timestamp_string()
+    {
+        return String(year) + "-" + String(month) + "-" + String(day) + " " + String(hour) + ":" + String(minute) + ":" + String(second);
     }
 
     String DateTime::month_string()

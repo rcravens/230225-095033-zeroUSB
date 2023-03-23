@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include "AtCommand.h"
+#include "GpsPoint.h"
 
 namespace rlc
 {
@@ -10,6 +11,7 @@ namespace rlc
     {
     public:
         String location_data;
+        GpsPoint last_gps_point;
 
         Gps(rlc::AtCommand &command_helper);
         bool current_location();

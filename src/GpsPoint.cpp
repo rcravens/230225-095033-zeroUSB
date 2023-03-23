@@ -152,16 +152,19 @@ namespace rlc
 
         if (!datetime.is_valid)
         {
+//            SerialUSB.println("Date is not valid.");
             is_valid = false;
         }
 
         if (latitude < -90 || latitude > 90)
         {
+//            SerialUSB.println("Latitude is not valid.");
             is_valid = false;
         }
 
         if (longitude < -180 || longitude > 180)
         {
+//            SerialUSB.println("Longitude is not valid.");
             is_valid = false;
         }
 

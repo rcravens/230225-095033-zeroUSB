@@ -2,7 +2,34 @@
 
 namespace rlc
 {
-    String FileHelper::strip_lines_from_top(String file_name, int num_lines_to_strip)
+    unsigned int FileHelper::line_count(String &file_name)
+    {
+        last_error = "";
+
+        unsigned int line_count = 0;
+
+        File gps_data_file = SD.open(file_name);
+        if (!gps_data_file)
+        {
+            last_error = "Failed to open gps_data.csv file";
+            return line_count;
+        }
+
+        char current_char = ' ';
+        while (gps_data_file.available() > 0)
+        {
+            current_char = gps_data_file.read();
+            if (current_char == '\n')
+            {
+                line_count++;
+            }
+        }
+        gps_data_file.close();
+
+        return line_count;
+    }
+
+    String FileHelper::strip_lines_from_top(String &file_name, int num_lines_to_strip)
     {
         last_error = "";
 
@@ -27,11 +54,8 @@ namespace rlc
             if (current_char == '\n')
             {
                 current_line.trim();
-                if (current_line.indexOf("+CGPSINFO:") >= 0)
-                {
-                    lines += current_line + "\n";
-                    num_lines++;
-                }
+                lines += current_line + "\n";
+                num_lines++;
 
                 current_line = "";
             }
@@ -45,12 +69,12 @@ namespace rlc
         {
             // copy the file but skip the above lines
             //
-            const char gps_temp_file_name[] = "temp.csv";
-            copy(file_name, gps_temp_file_name, skip);
+            String temp_file_name = "temp.csv";
+            copy(file_name, temp_file_name, skip);
 
             // copy file back to original filename
             //
-            copy(gps_temp_file_name, file_name, 0);
+            copy(temp_file_name, file_name, 0);
         }
         else
         {
@@ -62,12 +86,12 @@ namespace rlc
         return lines;
     }
 
-    unsigned int FileHelper::print_all_lines(String file_name)
+    unsigned int FileHelper::print_all_lines(String &file_name)
     {
         return print_lines(file_name, UINT16_MAX);
     }
 
-    unsigned int FileHelper::print_lines(String file_name, unsigned int num_lines_to_print)
+    unsigned int FileHelper::print_lines(String &file_name, unsigned int num_lines_to_print)
     {
         unsigned int num_lines = 0;
         char c = ' ';
@@ -101,7 +125,7 @@ namespace rlc
         return num_lines;
     }
 
-    bool FileHelper::copy(String source_name, String destination_name, const unsigned int skip)
+    bool FileHelper::copy(String &source_name, String &destination_name, const unsigned int skip)
     {
         last_error = "";
         // SerialUSB.println("----copy file from: " + source_name + " to " + destination_name + "-----");
@@ -176,7 +200,7 @@ namespace rlc
         return true;
     }
 
-    bool FileHelper::append(String file_name, String new_line)
+    bool FileHelper::append(String &file_name, String &new_line)
     {
         File file = SD.open(file_name, FILE_WRITE);
         if (file)
@@ -191,7 +215,7 @@ namespace rlc
         return false;
     }
 
-    bool FileHelper::remove(String file_name)
+    bool FileHelper::remove(String &file_name)
     {
         if (SD.exists(file_name))
         {
