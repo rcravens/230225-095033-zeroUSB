@@ -26,7 +26,7 @@ namespace rlc
 
         // Ideally we are sampling at least once per 50 yards = 150 feet
         //
-        recommended_gps_refresh_period_ms = velocity_in_feet_per_second == 0 ? rlc::Config::gps_refresh_period_default_ms : 1000 * 150.0 / velocity_in_feet_per_second;
+        recommended_gps_refresh_period_ms = velocity_in_feet_per_second == 0 ? rlc::Config::gps_refresh_period_default_ms : 1000 * rlc::Config::gps_ideal_distance_between_points_feet / velocity_in_feet_per_second;
         if (recommended_gps_refresh_period_ms < rlc::Config::gps_refresh_period_smallest_ms)
         {
             recommended_gps_refresh_period_ms = rlc::Config::gps_refresh_period_smallest_ms;

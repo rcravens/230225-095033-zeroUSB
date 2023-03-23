@@ -19,6 +19,7 @@ namespace rlc
         static const unsigned long gps_refresh_period_smallest_ms;
         static const unsigned long gps_refresh_period_default_ms;
         static const unsigned long gps_refresh_period_low_battery_ms;
+        static const float gps_ideal_distance_between_points_feet;
         static const float gps_distance_threshold_feet;
         static const float gps_max_time_threshold_seconds;
 

@@ -43,6 +43,10 @@ namespace rlc
     //
     const unsigned long Config::gps_refresh_period_low_battery_ms = 3600000;
 
+    // Ideal distance betwen points. This is used to compute a recommended refresh rate based on current velocity.
+    //
+    const float Config::gps_ideal_distance_between_points_feet = 150.0;
+
     // The minimum distance (ft) between the last cached point and a new point before it is cached
     //
     const float Config::gps_distance_threshold_feet = 5.0;
