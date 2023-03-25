@@ -80,7 +80,7 @@ void setup()
     SerialUSB.println("---------------------------------------------------------------------------------------------");
     SerialUSB.println("Battery Data");
     file_helper.print_all_lines(battery_data_file_name);
-    if (true)
+    if (false || file_helper.line_count(battery_data_file_name) > 500)
     {
         file_helper.remove(battery_data_file_name);
     }
