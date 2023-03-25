@@ -37,7 +37,7 @@ namespace rlc
 
     // The default refresh period (ms) for gps data collection. This is used as an upper bound for the computed recommendation.
     //
-    const unsigned long Config::gps_refresh_period_default_ms = 60000;
+    const unsigned long Config::gps_refresh_period_default_ms = 5000;
 
     // The low battery mode refresh period (ms) for gps data collection
     //
@@ -49,7 +49,7 @@ namespace rlc
 
     // The minimum distance (ft) between the last cached point and a new point before it is cached
     //
-    const float Config::gps_distance_threshold_feet = 5.0;
+    const float Config::gps_distance_threshold_feet = 0;
 
     // The maximum time (s) between the last cached point and the new point regardless of distance
     //

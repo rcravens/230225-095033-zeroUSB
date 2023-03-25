@@ -161,7 +161,7 @@ void loop()
             //
             if(calc.is_valid)
             {
-                SerialUSB.println("Adjust gps refresh period based on current velocity = " + String(calc.velocity_in_feet_per_second,2) + "ft/s = " + String(calc.velocity_in_miles_per_hour, 2) + "mi/hr");
+                SerialUSB.println(calc.to_string());
                 gps_refresh_period = battery.is_low_battery_mode() ? rlc::Config::gps_refresh_period_low_battery_ms : calc.recommended_gps_refresh_period_ms;
             }
         }

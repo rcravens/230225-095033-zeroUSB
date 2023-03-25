@@ -37,6 +37,11 @@ namespace rlc
         }
     }
 
+    String GpsCalculator::to_string()
+    {
+        return "Distance: " + String(distance_in_miles, 4) + "mi = " + String(distance_in_feet, 4) + "ft, Velocity: " + String(velocity_in_miles_per_hour, 4) + "mph = " + String(velocity_in_feet_per_second, 4) + "ft/2, Recommended GPS Period: " + String(recommended_gps_refresh_period_ms) + "ms";
+    }
+
     /*------------------------------------------------------------------------------------------
             PRIVATE METHODS
     ------------------------------------------------------------------------------------------*/
