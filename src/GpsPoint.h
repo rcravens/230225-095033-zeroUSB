@@ -11,7 +11,7 @@ namespace rlc
     {
     public:
         static double convert_nmea_to_degrees(String val_str);
-        static GpsPoint from_gps_str(String &str);
+        static GpsPoint from_nmea_str(String &str);
 
         bool is_valid;
         double latitude;

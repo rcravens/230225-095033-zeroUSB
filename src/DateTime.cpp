@@ -79,6 +79,11 @@ namespace rlc
 
     String DateTime::to_timestamp_string()
     {
+        if (!is_valid)
+        {
+            return "Invalid Date";
+        }
+
         return String(year) + "-" + String(month) + "-" + String(day) + " " + String(hour) + ":" + String(minute) + ":" + String(second);
     }
 

@@ -12,12 +12,16 @@ namespace rlc
     {
     public:
         bool is_valid;
+
         double distance_in_miles;
         double distance_in_feet;
+
         double time_diff_in_seconds;
         double time_diff_in_hours;
+
         double velocity_in_miles_per_hour;
         double velocity_in_feet_per_second;
+        
         float recommended_gps_refresh_period_ms;
 
         GpsCalculator(GpsPoint &pt1, GpsPoint &pt2);

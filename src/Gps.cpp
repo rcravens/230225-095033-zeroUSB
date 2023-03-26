@@ -50,7 +50,7 @@ namespace rlc
                 location_data = _command_helper.last_command_response.substring(eol1 + 1, eol2);
                 location_data.trim();
 
-                rlc::GpsPoint np = rlc::GpsPoint::from_gps_str(location_data);
+                rlc::GpsPoint np = rlc::GpsPoint::from_nmea_str(location_data);
                 last_gps_point.copy(np);
 
                 is_refreshed = true;

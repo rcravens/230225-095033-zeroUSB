@@ -19,7 +19,7 @@ namespace rlc
         return degrees + minutes/60;
     }
 
-    GpsPoint GpsPoint::from_gps_str(String &str)
+    GpsPoint GpsPoint::from_nmea_str(String &str)
     {
         unsigned int year = 0;
         unsigned int month = 0;
