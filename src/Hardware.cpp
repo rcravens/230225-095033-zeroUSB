@@ -35,8 +35,7 @@ namespace rlc
 #ifdef espressif32
         SPI.begin(SD_SCLK_PIN, SD_MISO_PIN, SD_MOSI_PIN, SD_CS_PIN);
 #endif
-        if (!SD.begin(SD_CS_PIN, SPI, 4000000U, "/", 5U, false))
-//        if (!SD.begin(SD_CS_PIN))
+        if (!SD.begin(SD_CS_PIN))
         {
             return false;
         }

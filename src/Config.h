@@ -5,25 +5,32 @@
 // #define atmelsam
 
 #ifdef atmelsam
+
 #define LTE_RESET_PIN 6
 #define LTE_PWRKEY_PIN 5
 #define LTE_FLIGHT_PIN 7
 
 #define SD_CS_PIN 4
+
+#define BATTERY_PIN A1
+
 #endif
 
 #ifdef espressif32
+
 #define LTE_RESET_PIN 6
 #define LTE_PWRKEY_PIN 48
 #define LTE_FLIGHT_PIN 7
+#define PCIE_TX_PIN 45
+#define PCIE_RX_PIN 46
 
 #define SD_MISO_PIN 40
 #define SD_MOSI_PIN 38
 #define SD_SCLK_PIN 39
 #define SD_CS_PIN 47
 
-#define PCIE_TX_PIN 45
-#define PCIE_RX_PIN 46
+#define BATTERY_PIN 3
+
 #endif
 
 #include <Arduino.h>

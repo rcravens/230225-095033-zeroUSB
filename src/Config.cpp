@@ -49,7 +49,7 @@ namespace rlc
 
     // The minimum distance (ft) between the last cached point and a new point before it is cached
     //
-    const float Config::gps_distance_threshold_feet = 10;
+    const float Config::gps_distance_threshold_feet = 0.01;
 
     // The maximum time (s) between the last cached point and the new point regardless of distance
     //

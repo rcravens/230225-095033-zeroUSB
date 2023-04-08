@@ -27,10 +27,10 @@ rlc::AtCommand command_helper(Serial1, console, false);
 
 const char content_type[] = "application/x-www-form-urlencoded";
 
-String gps_data_file_name = "gps_data.csv";
+String gps_data_file_name = "/gps_data.csv";
 unsigned long num_points_in_cache = 0;
 
-String battery_data_file_name = "bat_data.csv";
+String battery_data_file_name = "/bat_data.csv";
 
 
 rlc::Hardware hw(command_helper, console, false);

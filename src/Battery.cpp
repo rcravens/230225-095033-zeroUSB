@@ -43,16 +43,9 @@ namespace rlc
 
     void Battery::sample_adc()
     {
-#ifdef atmelsam
-        // Maduino board has a voltage divider (2, 1 Mohm resisters) connected to the batter and the center point connected to A1
+        // The board has a voltage divider connected to the batter and the center point connected to this pin
         //
-        _adc_value = analogRead(A1); // 12bit mode, 0 to 4095 corresponding to 0 to 3.3v (ADC reference voltage)
-#endif
-#ifdef espressif32
-        // T-SIMCAM board has a voltage divider (2, 1 Mohm resisters) connected to the batter and the center point connected to A1
-        //
-        _adc_value = analogRead(3); // 12bit mode, 0 to 4095 corresponding to 0 to 3.3v (ADC reference voltage)
-#endif
+        _adc_value = analogRead(BATTERY_PIN); // 12bit mode, 0 to 4095 corresponding to 0 to 3.3v (ADC reference voltage)
 
         //  _adc_value = (vbat / 2)*(4095/3.3)
         //
