@@ -4,6 +4,7 @@
 #include <Arduino.h>
 #include <SD.h>
 #include "AtCommand.h"
+#include "Console.h"
 
 namespace rlc
 {
@@ -14,13 +15,13 @@ namespace rlc
         String model;
         String imei;
 
-        Hardware(rlc::AtCommand &command_helper);
+        Hardware(rlc::AtCommand &command_helper, rlc::Console &console, bool is_debug);
         void init();
         bool init_sd();
         bool init_module();
 
-        void begin_serial_usb(unsigned long timeout);
-        void end_serial_usb();
+        void begin_console(unsigned long timeout);
+        void end_console();
 
         void begin_serial_module();
         void end_serial_module();
@@ -42,7 +43,8 @@ namespace rlc
 
     private:
         rlc::AtCommand _command_helper;
-        String _from_usb = "";
+        rlc::Console &_console;
+        bool _is_debug;
         bool _is_serial_usb_on_init = false;
     };
 }

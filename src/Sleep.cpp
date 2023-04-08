@@ -2,7 +2,8 @@
 
 namespace rlc
 {
-    Sleep::Sleep(rlc::Hardware &hardware) : _hardware(hardware)
+    Sleep::Sleep(rlc::Hardware &hardware, rlc::Console &console) : _hardware(hardware),
+                                                                   _console(console)
     {
         _ms_before_sleep = 0;
         _ms_after_sleep = 0;
@@ -96,9 +97,14 @@ namespace rlc
         int adjusted_sleep = pre_sleep(sleep_time_ms);
         if (adjusted_sleep > 0)
         {
-            _hardware.end_serial_usb();
+            _hardware.end_console();
+#ifdef atmelsam
             LowPower.sleep(adjusted_sleep);
-            _hardware.begin_serial_usb(100);
+#endif
+#ifdef espressif32
+            // TODO: investigate esp32 sleep options
+#endif
+            _hardware.begin_console(100);
         }
         post_sleep();
     }
@@ -108,9 +114,14 @@ namespace rlc
         int adjusted_sleep = pre_sleep(sleep_time_ms);
         if (adjusted_sleep > 0)
         {
-            _hardware.end_serial_usb();
+            _hardware.end_console();
+#ifdef atmelsam
             LowPower.deepSleep(adjusted_sleep);
-            _hardware.begin_serial_usb(100);
+#endif
+#ifdef espressif32
+            // TODO: investigate esp32 deep sleep options
+#endif
+            _hardware.begin_console(100);
         }
         post_sleep();
     }
@@ -148,14 +159,14 @@ namespace rlc
     int Sleep::pre_sleep(int sleep_time_ms)
     {
         int adjusted_sleep = sleep_time_ms - _ms_before_sleep - _ms_after_sleep;
-        SerialUSB.println("Desired Sleep Interval (ms) = " + String(sleep_time_ms) + ", Actual sleep (ms) = " + String(adjusted_sleep) + ", Pre-nap (ms) = " + String(_ms_before_sleep) + ", Post-nap (ms) = " + String(_ms_after_sleep));
-        SerialUSB.print("Good night...ZZZZZ");
+        _console.println("Desired Sleep Interval (ms) = " + String(sleep_time_ms) + ", Actual sleep (ms) = " + String(adjusted_sleep) + ", Pre-nap (ms) = " + String(_ms_before_sleep) + ", Post-nap (ms) = " + String(_ms_after_sleep));
+        _console.print("Good night...ZZZZZ");
 
         return adjusted_sleep;
     }
 
     void Sleep::post_sleep()
     {
-        SerialUSB.println("...i'm awake!");
+        _console.println("...i'm awake!");
     }
 }

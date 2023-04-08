@@ -6,9 +6,9 @@ namespace rlc
                                                                                                       _max_voltage(max_voltage),
                                                                                                       _low_battery_mode_percent(low_battery_mode_percent)
     {
-        analogReference(AR_DEFAULT);
+        // analogReference(AR_DEFAULT);  // seems to function without this board specific call
 
-        analogReadResolution(12);   // 2^12 = 4096 (0 - 4095)
+        analogReadResolution(12); // 2^12 = 4096 (0 - 4095)
 
         refresh();
     }
@@ -20,7 +20,7 @@ namespace rlc
 
     String Battery::to_string()
     {
-        return "Battery Miilis=" + String(_millis) + ", ADC Value=" + String(_adc_value) + ", Voltage=" + String(_current_voltage) + ", Percent=" + String(_current_percent);
+        return "Battery Millis=" + String(_millis) + ", ADC Value=" + String(_adc_value) + ", Voltage=" + String(_current_voltage) + ", Percent=" + String(_current_percent);
     }
 
     String Battery::to_http_post()
@@ -43,9 +43,16 @@ namespace rlc
 
     void Battery::sample_adc()
     {
+#ifdef atmelsam
         // Maduino board has a voltage divider (2, 1 Mohm resisters) connected to the batter and the center point connected to A1
         //
         _adc_value = analogRead(A1); // 12bit mode, 0 to 4095 corresponding to 0 to 3.3v (ADC reference voltage)
+#endif
+#ifdef espressif32
+        // T-SIMCAM board has a voltage divider (2, 1 Mohm resisters) connected to the batter and the center point connected to A1
+        //
+        _adc_value = analogRead(3); // 12bit mode, 0 to 4095 corresponding to 0 to 3.3v (ADC reference voltage)
+#endif
 
         //  _adc_value = (vbat / 2)*(4095/3.3)
         //
@@ -58,11 +65,11 @@ namespace rlc
         // 3.88V multimeter = 2426 adc value
         //
         // float factor = 2.0 // use the default
-        const float factor = 2.0; //1.984636;              // 3.88 * 4095 / (3.3 * 2426);
+        const float factor = 2.0; // 1.984636;              // 3.88 * 4095 / (3.3 * 2426);
 
-        const float adc_reference_voltage = 3.3;    // TODO: does droop as the battery voltage drops?
+        const float adc_reference_voltage = 3.3; // TODO: does droop as the battery voltage drops?
 
-        const int number_of_levels = 4095;          // 2^12
+        const int number_of_levels = 4095; // 2^12
 
         _current_voltage = factor * _adc_value * adc_reference_voltage / number_of_levels;
     }

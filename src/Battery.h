@@ -2,7 +2,7 @@
 #define Battery_h
 
 #include <Arduino.h>
-#include <ArduinoLowPower.h>
+
 #include "Hardware.h"
 
 namespace rlc

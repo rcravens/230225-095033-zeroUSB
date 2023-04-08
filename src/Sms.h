@@ -2,7 +2,6 @@
 #define Sms_h
 
 #include <Arduino.h>
-#include <ArduinoLowPower.h>
 #include "AtCommand.h"
 
 namespace rlc

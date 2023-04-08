@@ -2,8 +2,35 @@
 
 namespace rlc
 {
-    AtCommand::AtCommand(bool is_debug) : _is_debug(is_debug)
+    AtCommand::AtCommand(HardwareSerial &serial, rlc::Console &console, bool is_debug) : _serial(serial),
+                                                                                         _console(console),
+                                                                                         _is_debug(is_debug)
     {
+    }
+
+    bool AtCommand::begin(unsigned long timeout)
+    {
+#ifdef atmelsam
+        _serial.begin(115200);
+#endif
+#ifdef espressif32
+        _serial.begin(115200, SERIAL_8N1, PCIE_RX_PIN, PCIE_TX_PIN);
+#endif
+        unsigned long now = millis();
+        while ((now - millis()) < timeout && !_serial)
+        {
+        }
+
+        return (bool)_serial;
+    }
+
+    void AtCommand::end()
+    {
+        if (_serial)
+        {
+            _serial.flush();
+            _serial.end();
+        }
     }
 
     void AtCommand::start_verbose()
@@ -26,16 +53,16 @@ namespace rlc
         bool is_desired_response = false;
         last_command_response = "";
 
-        Serial1.println(command);
+        _serial.println(command);
 
         // Watch for desired response
         //
         unsigned long time = millis();
         while ((time + timeout) > millis() && !is_desired_response)
         {
-            while (Serial1.available())
+            while (_serial.available())
             {
-                char c = Serial1.read();
+                char c = _serial.read();
                 last_command_response += c;
             }
 
@@ -44,9 +71,9 @@ namespace rlc
 
         // Read any final characters (new lines...)
         //
-        while (Serial1.available())
+        while (_serial.available())
         {
-            char c = Serial1.read();
+            char c = _serial.read();
             last_command_response += c;
         }
 
@@ -63,8 +90,8 @@ namespace rlc
 
         if (_is_debug)
         {
-            SerialUSB.println("----> " + command + " <----");
-            SerialUSB.println(last_command_response);
+            _console.println("----> " + command + " <----");
+            _console.println(last_command_response);
         }
 
         return is_desired_response;
@@ -80,41 +107,73 @@ namespace rlc
         String response = "";
         if (data.equals("1A") || data.equals("1a"))
         {
-            SerialUSB.println();
-            SerialUSB.println("Get a 1A, input a 0x1A");
+            _console.println();
+            _console.println("Get a 1A, input a 0x1A");
 
-            // Serial1.write(0x1A);
-            Serial1.write(26);
-            Serial1.println();
+            // _serial.write(0x1A);
+            _serial.write(26);
+            _serial.println();
             return "";
         }
 
-        Serial1.println(data);
+        _serial.println(data);
 
         unsigned long time = millis();
         while ((time + timeout) > millis())
         {
-            while (Serial1.available())
+            while (_serial.available())
             {
-                char c = Serial1.read();
+                char c = _serial.read();
                 response += c;
             }
         }
 
         // Read any final characters (new lines...)
         //
-        while (Serial1.available())
+        while (_serial.available())
         {
-            char c = Serial1.read();
+            char c = _serial.read();
             response += c;
         }
 
         if (_is_debug)
         {
-            SerialUSB.print(response);
+            _console.print(response);
         }
 
         return response;
     }
 
+    void AtCommand::send_module_output_to_console_out()
+    {
+        while (_serial.available() > 0)
+        {
+            _console.write(Serial1.read());
+            yield();
+        }
+    }
+
+    void AtCommand::send_console_input_to_module()
+    {
+        _serial.available();
+        while (_console.available() > 0)
+        {
+            int c = -1;
+            c = _console.read();
+            if (c != '\n' && c != '\r')
+            {
+                _from_usb += (char)c;
+            }
+            else
+            {
+                if (!_from_usb.equals(""))
+                {
+                    _console.println(_from_usb);
+                    send_data(_from_usb, 1000);
+                    _from_usb = "";
+                }
+            }
+            yield();
+        }
+    }
 }

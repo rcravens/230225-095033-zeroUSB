@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include <SD.h>
+#include "Console.h"
 
 namespace rlc
 {
@@ -11,6 +12,7 @@ namespace rlc
     public:
         String last_error;
 
+        FileHelper(rlc::Console &console, bool is_debug);
         String strip_lines_from_top(String &file_name, int num_lines_to_strip);
         unsigned int line_count(String &file_name);
         unsigned int print_all_lines(String &file_name);
@@ -19,7 +21,8 @@ namespace rlc
         bool append(String &file_name, String &new_line);
         bool remove(String &file_name);
     private:
-
+        rlc::Console &_console;
+        bool _is_debug;
     };
 }
 

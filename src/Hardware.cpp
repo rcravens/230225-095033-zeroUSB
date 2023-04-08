@@ -1,17 +1,10 @@
 #include "Hardware.h"
 
-#define LTE_RESET_PIN 6
-#define LTE_PWRKEY_PIN 5
-#define LTE_FLIGHT_PIN 7
-
-#define PIN_SD_SELECT 4
-
-#define MODEM_RXD 0
-#define MODEM_TXD 1
-
 namespace rlc
 {
-    Hardware::Hardware(rlc::AtCommand &command_helper) : _command_helper(command_helper)
+    Hardware::Hardware(rlc::AtCommand &command_helper, rlc::Console &console, bool is_debug) : _command_helper(command_helper),
+                                                                                               _console(console),
+                                                                                               _is_debug(is_debug)
     {
         manufacturer = "";
         model = "";
@@ -20,12 +13,13 @@ namespace rlc
 
     void Hardware::init()
     {
-        begin_serial_usb(10000);
-        _is_serial_usb_on_init = (bool)SerialUSB;
+        begin_console(10000);
+
         begin_serial_module();
 
-        pinMode(LTE_RESET_PIN, OUTPUT);
         pinMode(LTE_PWRKEY_PIN, OUTPUT);
+#ifdef atmelsam
+        pinMode(LTE_RESET_PIN, OUTPUT);
         pinMode(LTE_FLIGHT_PIN, OUTPUT);
 
         digitalWrite(LTE_RESET_PIN, LOW);
@@ -33,11 +27,16 @@ namespace rlc
 
         digitalWrite(LTE_FLIGHT_PIN, LOW); // LOW = Normal Mode, HIGH = Flight Mode
         delay(1000);
+#endif
     }
-    
+
     bool Hardware::init_sd()
     {
-        if (!SD.begin(PIN_SD_SELECT))
+#ifdef espressif32
+        SPI.begin(SD_SCLK_PIN, SD_MISO_PIN, SD_MOSI_PIN, SD_CS_PIN);
+#endif
+        if (!SD.begin(SD_CS_PIN, SPI, 4000000U, "/", 5U, false))
+//        if (!SD.begin(SD_CS_PIN))
         {
             return false;
         }
@@ -95,39 +94,24 @@ namespace rlc
         return false;
     }
 
-    void Hardware::begin_serial_usb(unsigned long timeout)
+    void Hardware::begin_console(unsigned long timeout)
     {
-        SerialUSB.begin(115200);
-        unsigned long now = millis();
-        while ((now - millis()) < timeout && !SerialUSB)
-        {
-        }
+        _console.begin(timeout);
     }
 
-    void Hardware::end_serial_usb()
+    void Hardware::end_console()
     {
-        if (SerialUSB)
-        {
-            SerialUSB.flush();
-            SerialUSB.end();
-        }
+        _console.end();
     }
 
     void Hardware::begin_serial_module()
     {
-        Serial1.begin(115200);
-        while (!Serial1)
-        {
-        }
+        _command_helper.begin(1000);
     }
 
     void Hardware::end_serial_module()
     {
-        if (Serial1)
-        {
-            Serial1.flush();
-            Serial1.end();
-        }
+        _command_helper.end();
     }
 
     bool Hardware::is_module_on()
@@ -180,7 +164,7 @@ namespace rlc
             delay(500);
             _command_helper.send_command_and_wait("AT+CPOF");
             // TODO: what is the minimum that still works here?
-            //delay(500);
+            // delay(500);
             return true;
         }
 
@@ -191,9 +175,16 @@ namespace rlc
     {
         if (!is_module_on()) // if it's off, turn it on.
         {
+#ifdef atmelsam
             digitalWrite(LTE_PWRKEY_PIN, LOW);
             delay(500);
             digitalWrite(LTE_PWRKEY_PIN, HIGH);
+#endif
+#ifdef espressif32
+            digitalWrite(LTE_PWRKEY_PIN, 1);
+            delay(500);
+            digitalWrite(LTE_PWRKEY_PIN, 0);
+#endif
             for (int i = 0; i < 40; i++)
             {
                 if (_command_helper.send_command_and_wait("AT"))
@@ -221,35 +212,12 @@ namespace rlc
 
     void Hardware::send_module_output_to_console_out()
     {
-        while (Serial1.available() > 0)
-        {
-            SerialUSB.write(Serial1.read());
-            yield();
-        }
+        _command_helper.send_module_output_to_console_out();
     }
 
     void Hardware::send_console_input_to_module()
     {
-
-        while (SerialUSB.available() > 0)
-        {
-            int c = -1;
-            c = SerialUSB.read();
-            if (c != '\n' && c != '\r')
-            {
-                _from_usb += (char)c;
-            }
-            else
-            {
-                if (!_from_usb.equals(""))
-                {
-                    SerialUSB.println(_from_usb);
-                    _command_helper.send_data(_from_usb, 1000);
-                    _from_usb = "";
-                }
-            }
-            yield();
-        }
+        _command_helper.send_console_input_to_module();
     }
 
     String Hardware::to_http_post()

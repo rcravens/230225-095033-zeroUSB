@@ -2,6 +2,10 @@
 
 namespace rlc
 {
+    FileHelper::FileHelper(rlc::Console &console, bool is_debug) : _console(console), _is_debug(is_debug)
+    {
+    }
+
     unsigned int FileHelper::line_count(String &file_name)
     {
         last_error = "";
@@ -100,26 +104,26 @@ namespace rlc
             File gps_data = SD.open(file_name);
             if (gps_data)
             {
-                SerialUSB.println("-------FILE BEGIN-------");
+                _console.println("-------FILE BEGIN-------");
                 num_lines = 0;
                 while (gps_data.available() && num_lines < num_lines_to_print)
                 {
                     c = gps_data.read();
 
-                    SerialUSB.write(c);
+                    _console.print(c);
 
                     if (c == '\n')
                     {
                         num_lines++;
                     }
                 }
-                SerialUSB.println("-------FILE END-------");
+                _console.println("-------FILE END-------");
                 gps_data.close();
             }
         }
         else
         {
-            SerialUSB.println("File (" + file_name + ") does not exist");
+            _console.println("File (" + file_name + ") does not exist");
         }
 
         return num_lines;
@@ -128,8 +132,7 @@ namespace rlc
     bool FileHelper::copy(String &source_name, String &destination_name, const unsigned int skip)
     {
         last_error = "";
-        // SerialUSB.println("----copy file from: " + source_name + " to " + destination_name + "-----");
-
+ 
         File src_file = SD.open(source_name, FILE_READ);
         if (!src_file)
         {
@@ -142,7 +145,7 @@ namespace rlc
             SD.remove(destination_name);
         }
 
-        File dst_file = SD.open(destination_name, FILE_WRITE);
+        File dst_file = SD.open(destination_name, FILE_WRITE, true);
         if (!dst_file)
         {
             last_error = "Failed to open destination file";
@@ -202,10 +205,9 @@ namespace rlc
 
     bool FileHelper::append(String &file_name, String &new_line)
     {
-        File file = SD.open(file_name, FILE_WRITE);
+        File file = SD.open(file_name, FILE_APPEND, true);
         if (file)
         {
-            file.seek(-1);
             file.println(new_line);
             file.close();
 

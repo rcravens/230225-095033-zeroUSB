@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include "Config.h"
+#include "Console.h"
 #include "AtCommand.h"
 #include "Hardware.h"
 #include "FileHelper.h"
@@ -13,6 +14,17 @@
 #include "GpsCalculator.h"
 #include "MyMath.h"
 
+
+#ifdef espressif32
+rlc::Console console(Serial);
+HardwareSerial SerialAT(1);
+rlc::AtCommand command_helper(SerialAT, console, false);
+#endif
+#ifdef atmelsam
+rlc::Console console(SerialUSB);
+rlc::AtCommand command_helper(Serial1, console, false);
+#endif
+
 const char content_type[] = "application/x-www-form-urlencoded";
 
 String gps_data_file_name = "gps_data.csv";
@@ -20,12 +32,12 @@ unsigned long num_points_in_cache = 0;
 
 String battery_data_file_name = "bat_data.csv";
 
-rlc::AtCommand command_helper(false);
-rlc::Hardware hw(command_helper);
-rlc::FileHelper file_helper;
+
+rlc::Hardware hw(command_helper, console, false);
+rlc::FileHelper file_helper(console, false);
 rlc::Gps gps(command_helper);
 rlc::Http http(command_helper);
-rlc::Sleep sleep(hw);
+rlc::Sleep sleep_helper(hw, console);
 rlc::Battery battery(rlc::Config::battery_zero_point_voltage, rlc::Config::battery_max_voltage, rlc::Config::battery_low_mode_percent);
 rlc::Sms sms(command_helper);
 
@@ -37,18 +49,20 @@ rlc::GpsPoint new_point;
 float total_distance_traveled_feet = 0;
 float distance_since_last_post_feet = 0;
 
+#define PCIE_TX_PIN      45
+#define PCIE_RX_PIN      46
 void setup()
-{
+{   
     hw.init();
 
-    SerialUSB.println("------------------------------------------NEW START------------------------------------------");
-    SerialUSB.println("Maduino Zero 4G LTE(SIM7600X)");
-    SerialUSB.println("                         Board: https://www.makerfabs.com/maduino-zero-4g-lte-sim7600.html");
-    SerialUSB.println("                    Board Wiki: https://wiki.makerfabs.com/Maduino_Zero_4G_LTE.html");
-    SerialUSB.println("                  Board Github: https://github.com/Makerfabs/Maduino-Zero-4G-LTE");
-    SerialUSB.println("           SIM7600 Command Set: https://github.com/Makerfabs/Maduino-Zero-4G-LTE/blob/main/A76XX%20Series_AT_Command_Manual_V1.05.pdf");
-    SerialUSB.println("               Twilio SIM Card: https://www.twilio.com/docs/iot/supersim");
-    SerialUSB.println("---------------------------------------------------------------------------------------------");
+    console.println("------------------------------------------NEW START------------------------------------------");
+    console.println("Maduino Zero 4G LTE(SIM7600X)");
+    console.println("                         Board: https://www.makerfabs.com/maduino-zero-4g-lte-sim7600.html");
+    console.println("                    Board Wiki: https://wiki.makerfabs.com/Maduino_Zero_4G_LTE.html");
+    console.println("                  Board Github: https://github.com/Makerfabs/Maduino-Zero-4G-LTE");
+    console.println("           SIM7600 Command Set: https://github.com/Makerfabs/Maduino-Zero-4G-LTE/blob/main/A76XX%20Series_AT_Command_Manual_V1.05.pdf");
+    console.println("               Twilio SIM Card: https://www.twilio.com/docs/iot/supersim");
+    console.println("---------------------------------------------------------------------------------------------");
 
     bool is_sd_ready = hw.init_sd();
     bool is_module_on = hw.turn_on_module();
@@ -58,51 +72,54 @@ void setup()
     String module_on_status = is_module_on ? "YES" : "NO";
     String module_configured_status = is_module_configured ? "YES" : "NO";
 
-    SerialUSB.println("        SD Storage Initialized: " + sd_status);
-    SerialUSB.println("             SIM7600 Module On: " + module_on_status);
-    SerialUSB.println("     SIM7600 Module Configured: " + module_configured_status);
+    console.println("        SD Storage Initialized: " + sd_status);
+    console.println("             SIM7600 Module On: " + module_on_status);
+    console.println("     SIM7600 Module Configured: " + module_configured_status);
 
     if (!is_sd_ready || !is_module_on || !is_module_configured)
     {
-        SerialUSB.println("\n\n!!!!!! HALTING EXECUTION - BOARD NOT READY !!!!!!");
+        console.println("\n\n!!!!!! HALTING EXECUTION - BOARD NOT READY !!!!!!");
         while (true)
         {
             // Halt indefinitely....something on the board is not ready
         }
     }
-    SerialUSB.println("                  Manufacturer: " + hw.manufacturer);
-    SerialUSB.println("                         Model: " + hw.model);
-    SerialUSB.println("                          IMEI: " + hw.imei);
+    console.println("                  Manufacturer: " + hw.manufacturer);
+    console.println("                         Model: " + hw.model);
+    console.println("                          IMEI: " + hw.imei);
 
     num_points_in_cache = file_helper.line_count(gps_data_file_name);
     // file_helper.remove(gps_data_file_name);
 
-    SerialUSB.println("---------------------------------------------------------------------------------------------");
-    SerialUSB.println("Battery Data");
+    console.println("---------------------------------------------------------------------------------------------");
+    console.println("Battery Data");
     file_helper.print_all_lines(battery_data_file_name);
     if (false || file_helper.line_count(battery_data_file_name) > 500)
     {
         file_helper.remove(battery_data_file_name);
     }
-    SerialUSB.println("---------------------------------------------------------------------------------------------");
+    console.println("---------------------------------------------------------------------------------------------");
 }
 
 void loop()
-{
-    SerialUSB.println("\n\n");
-    SerialUSB.println("------------------------------TOP-OF-THE-LOOP------------------------------------------------");
+{  
+    console.println("\n\n");
+    console.println("------------------------------TOP-OF-THE-LOOP------------------------------------------------");
 
     // Monitor the current battery voltage and state of charge
     //
     battery.refresh();
+    
     /*String new_line = battery.to_csv();
     if (!file_helper.append(battery_data_file_name, new_line))
     {
-        SerialUSB.println("Failed to append battery data.");
-        SerialUSB.println(new_line);
+        console.println("Failed to append battery data.");
+        console.println(new_line);
     }*/
-    SerialUSB.println(battery.to_string());
-    SerialUSB.println("\n");
+
+    
+    console.println(battery.to_string());
+    console.println("\n");
 
     // Low power mode options
     //
@@ -119,7 +136,7 @@ void loop()
     if (gps.current_location())
     {
         new_point.copy(gps.last_gps_point);
-        SerialUSB.println("New GPS Data: " + new_point.to_string());
+        console.println("New GPS Data: " + new_point.to_string());
 
         // Only cache new points if
         //  1. the distance moved from the last point exceeds the distance threshold
@@ -136,7 +153,7 @@ void loop()
                 String new_line = new_point.to_string();
                 if (!file_helper.append(gps_data_file_name, new_line))
                 {
-                    SerialUSB.println("Failed to cache new point.");
+                    console.println("Failed to cache new point.");
                 }
                 else
                 {
@@ -152,7 +169,7 @@ void loop()
             }
             else
             {
-                SerialUSB.println("New point not far enough away from previously recorded point.");
+                console.println("New point not far enough away from previously recorded point.");
 
                 can_sleep = true;
             }
@@ -161,7 +178,7 @@ void loop()
             //
             if(calc.is_valid)
             {
-                SerialUSB.println(calc.to_string());
+                console.println(calc.to_string());
                 gps_refresh_period = battery.is_low_battery_mode() ? rlc::Config::gps_refresh_period_low_battery_ms : calc.recommended_gps_refresh_period_ms;
             }
         }
@@ -169,8 +186,8 @@ void loop()
 
     // Post to API if we have collected enough location points
     //
-    SerialUSB.println("\n");
-    SerialUSB.println("Number of points in cache=" + String(num_points_in_cache));
+    console.println("\n");
+    console.println("Number of points in cache=" + String(num_points_in_cache));
     if (num_points_in_cache >= rlc::Config::api_num_gps_points_in_payload)
     {
         if (hw.is_cellular_connected(true))
@@ -184,7 +201,7 @@ void loop()
 
                 if (http.post(rlc::Config::api_url, content, content_type))
                 {
-                    SerialUSB.println("API - " + String(content.length()) + " bytes sent");
+                    console.println("API - " + String(content.length()) + " bytes sent");
 
                     total_points_sent += num_points_in_cache;
 
@@ -196,17 +213,17 @@ void loop()
                 {
                     file_helper.append(gps_data_file_name, lines); // re-cache these points as they failed to send
 
-                    SerialUSB.println("Failed to send content to API. " + String(lines.length()) + " bytes added back to cache.");
+                    console.println("Failed to send content to API. " + String(lines.length()) + " bytes added back to cache.");
                 }
             }
             else
             {
-                SerialUSB.println("No line data read from file. last error = " + file_helper.last_error);
+                console.println("No line data read from file. last error = " + file_helper.last_error);
             }
         }
         else
         {
-            SerialUSB.println("No cellular found.");
+            console.println("No cellular found.");
         }
     }
 
@@ -218,17 +235,19 @@ void loop()
 
     // Sleep
     //
+    delay(5000);
+    return;
     if (can_sleep && gps_refresh_period > 0)
     {
         if (gps_refresh_period < 120000 && !battery.is_low_battery_mode())
         {
             // High gps collection rates (< 2min) / Unlimited power
-            sleep.mcu_delay_module_on(gps_refresh_period);
+            sleep_helper.mcu_delay_module_on(gps_refresh_period);
         }
         else
         {
             // Low gps collection rates (> 2min) / Limited power
-            sleep.mcu_deep_sleep_module_off(gps_refresh_period);
+            sleep_helper.mcu_deep_sleep_module_off(gps_refresh_period);
         }
     }
 }

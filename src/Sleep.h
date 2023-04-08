@@ -2,15 +2,20 @@
 #define Sleep_h
 
 #include <Arduino.h>
-#include <ArduinoLowPower.h>
+
+#include "Config.h"
+#ifdef atmelsam
+    #include <ArduinoLowPower.h>
+#endif
 #include "Hardware.h"
+#include "Console.h"
 
 namespace rlc
 {
     class Sleep
     {
     public:
-        Sleep(rlc::Hardware &hardware);
+        Sleep(rlc::Hardware &hardware, rlc::Console &console);
         
         void mcu_delay_module_on(int sleep_time_ms);
         void mcu_sleep_module_on(int sleep_time_ms);
@@ -35,7 +40,8 @@ namespace rlc
         void module_turn_off();
         void module_turn_on();
 
-        rlc::Hardware _hardware;
+        rlc::Hardware &_hardware;
+        rlc::Console &_console;
 
         unsigned long _ms_before_sleep = 0;
         unsigned long _ms_after_sleep = 0;

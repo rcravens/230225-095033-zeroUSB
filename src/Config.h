@@ -1,6 +1,31 @@
 #ifndef Config_h
 #define Config_h
 
+#define espressif32
+// #define atmelsam
+
+#ifdef atmelsam
+#define LTE_RESET_PIN 6
+#define LTE_PWRKEY_PIN 5
+#define LTE_FLIGHT_PIN 7
+
+#define SD_CS_PIN 4
+#endif
+
+#ifdef espressif32
+#define LTE_RESET_PIN 6
+#define LTE_PWRKEY_PIN 48
+#define LTE_FLIGHT_PIN 7
+
+#define SD_MISO_PIN 40
+#define SD_MOSI_PIN 38
+#define SD_SCLK_PIN 39
+#define SD_CS_PIN 47
+
+#define PCIE_TX_PIN 45
+#define PCIE_RX_PIN 46
+#endif
+
 #include <Arduino.h>
 
 namespace rlc
@@ -22,7 +47,6 @@ namespace rlc
         static const float gps_ideal_distance_between_points_feet;
         static const float gps_distance_threshold_feet;
         static const float gps_max_time_threshold_seconds;
-
 
     private:
     };
