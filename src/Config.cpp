@@ -33,15 +33,15 @@ namespace rlc
 
     // The smallest refresh period (ms) for gps data collection. This is used as a lower bound for the computed recommendation.
     //
-    const unsigned long Config::gps_refresh_period_smallest_ms = 1000;
+    const unsigned long Config::gps_refresh_period_smallest_sec = 1;
 
     // The default refresh period (ms) for gps data collection. This is used as an upper bound for the computed recommendation.
     //
-    const unsigned long Config::gps_refresh_period_default_ms = 5000;
+    const unsigned long Config::gps_refresh_period_default_sec = 3600;
 
     // The low battery mode refresh period (ms) for gps data collection
     //
-    const unsigned long Config::gps_refresh_period_low_battery_ms = 3600000;
+    const unsigned long Config::gps_refresh_period_low_battery_sec = 3600;
 
     // Ideal distance betwen points. This is used to compute a recommended refresh rate based on current velocity.
     //

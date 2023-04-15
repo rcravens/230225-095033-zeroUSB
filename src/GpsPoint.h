@@ -28,6 +28,8 @@ namespace rlc
         double distance_in_miles(GpsPoint &from);
 
         bool copy(GpsPoint &pt);
+        String serialize();
+        bool deserialize(String &data);
 
     private:
         bool validate();

@@ -103,6 +103,9 @@ namespace rlc
 #endif
 #ifdef espressif32
             // TODO: investigate esp32 sleep options
+            uint64_t sleep_time_us = adjusted_sleep * 1000;
+            esp_sleep_enable_timer_wakeup(sleep_time_us);
+            esp_light_sleep_start();
 #endif
             _hardware.begin_console(100);
         }
@@ -120,6 +123,13 @@ namespace rlc
 #endif
 #ifdef espressif32
             // TODO: investigate esp32 deep sleep options
+            uint64_t sleep_time_us = adjusted_sleep * 1000;
+            esp_sleep_pd_config(ESP_PD_DOMAIN_RTC_PERIPH, ESP_PD_OPTION_OFF);
+            esp_sleep_pd_config(ESP_PD_DOMAIN_RTC_SLOW_MEM, ESP_PD_OPTION_OFF);
+            esp_sleep_pd_config(ESP_PD_DOMAIN_RTC_FAST_MEM, ESP_PD_OPTION_OFF);
+            esp_sleep_pd_config(ESP_PD_DOMAIN_XTAL, ESP_PD_OPTION_OFF);
+            esp_sleep_enable_timer_wakeup(sleep_time_us);
+            esp_deep_sleep_start();
 #endif
             _hardware.begin_console(100);
         }

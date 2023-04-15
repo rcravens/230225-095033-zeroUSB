@@ -14,6 +14,8 @@ namespace rlc
         static double convert_meters_to_miles(double meters) { return meters / 1609.344; }
         static double convert_miles_to_feet(double miles) { return miles * 5280.0; }
 
+        static double convert_seconds_to_milliseconds(double seconds) { return seconds * 1000.0; }
+        static double convert_seconds_to_microseconds(double seconds) { return seconds * 1000000.0; }
     private:
     };
 }

@@ -12,23 +12,26 @@ namespace rlc
 
         unsigned int line_count = 0;
 
-        File gps_data_file = SD.open(file_name);
-        if (!gps_data_file)
+        if (SD.exists(file_name))
         {
-            last_error = "Failed to open gps_data.csv file";
-            return line_count;
-        }
-
-        char current_char = ' ';
-        while (gps_data_file.available() > 0)
-        {
-            current_char = gps_data_file.read();
-            if (current_char == '\n')
+            File gps_data_file = SD.open(file_name);
+            if (!gps_data_file)
             {
-                line_count++;
+                last_error = "Failed to open gps_data.csv file";
+                return line_count;
             }
+
+            char current_char = ' ';
+            while (gps_data_file.available() > 0)
+            {
+                current_char = gps_data_file.read();
+                if (current_char == '\n')
+                {
+                    line_count++;
+                }
+            }
+            gps_data_file.close();
         }
-        gps_data_file.close();
 
         return line_count;
     }
@@ -38,6 +41,12 @@ namespace rlc
         last_error = "";
 
         String lines = "";
+
+        if (!SD.exists(file_name))
+        {
+            last_error = "Source file does not exist";
+            return lines;
+        }
 
         File gps_data_file = SD.open(file_name);
         if (!gps_data_file)
@@ -132,7 +141,13 @@ namespace rlc
     bool FileHelper::copy(String &source_name, String &destination_name, const unsigned int skip)
     {
         last_error = "";
- 
+
+        if (!SD.exists(source_name))
+        {
+            last_error = "Source file does not exist";
+            return false;
+        }
+
         File src_file = SD.open(source_name, FILE_READ);
         if (!src_file)
         {
@@ -225,5 +240,35 @@ namespace rlc
         }
 
         return false;
+    }
+
+    bool FileHelper::write_content(String &file_name, String &content)
+    {
+        File file = SD.open(file_name, FILE_WRITE, true);
+        if (file)
+        {
+            file.println(content);
+            file.close();
+
+            return true;
+        }
+        return false;
+    }
+
+    String FileHelper::read_content(String &file_name)
+    {
+        String content = "";
+        if (SD.exists(file_name))
+        {
+            File file = SD.open(file_name, FILE_READ);
+            if (file)
+            {
+                content = file.readString();
+
+                file.close();
+            }
+        }
+
+        return content;
     }
 }

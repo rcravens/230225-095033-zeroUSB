@@ -29,22 +29,33 @@ namespace rlc
             is_valid = true;
         }
 
-        // Ideally we are sampling at least once per 50 yards = 150 feet
+        // Compensate for the overhead of collecting the points
         //
-        recommended_gps_refresh_period_ms = velocity_in_feet_per_second == 0 ? rlc::Config::gps_refresh_period_default_ms : 1000 * rlc::Config::gps_ideal_distance_between_points_feet / velocity_in_feet_per_second;
-        if (recommended_gps_refresh_period_ms < rlc::Config::gps_refresh_period_smallest_ms)
+        unsigned long overhead = time_diff_in_seconds - rlc::Config::gps_refresh_period_default_sec;
+        recommended_gps_refresh_period_sec = rlc::Config::gps_refresh_period_default_sec - overhead;
+
+        // Increase our sampling rate if we moved beyond the ideal
+        //
+        if (distance_in_feet > rlc::Config::gps_ideal_distance_between_points_feet && velocity_in_feet_per_second > 0)
         {
-            recommended_gps_refresh_period_ms = rlc::Config::gps_refresh_period_smallest_ms;
+            recommended_gps_refresh_period_sec = rlc::Config::gps_ideal_distance_between_points_feet / velocity_in_feet_per_second;
         }
-        if (recommended_gps_refresh_period_ms > rlc::Config::gps_refresh_period_default_ms)
+
+        // Clamp to reasonable refresh periods
+        //
+        if (recommended_gps_refresh_period_sec < rlc::Config::gps_refresh_period_smallest_sec)
         {
-            recommended_gps_refresh_period_ms = rlc::Config::gps_refresh_period_default_ms;
+            recommended_gps_refresh_period_sec = rlc::Config::gps_refresh_period_smallest_sec;
+        }
+        if (recommended_gps_refresh_period_sec > rlc::Config::gps_refresh_period_default_sec)
+        {
+            recommended_gps_refresh_period_sec = rlc::Config::gps_refresh_period_default_sec;
         }
     }
 
     String GpsCalculator::to_string()
     {
-        return "Distance: " + String(distance_in_miles, 4) + "mi = " + String(distance_in_feet, 4) + "ft, Velocity: " + String(velocity_in_miles_per_hour, 4) + "mph = " + String(velocity_in_feet_per_second, 4) + "ft/2, Recommended GPS Period: " + String(recommended_gps_refresh_period_ms) + "ms";
+        return "Distance: " + String(distance_in_miles, 4) + "mi = " + String(distance_in_feet, 4) + "ft, Velocity: " + String(velocity_in_miles_per_hour, 4) + "mph = " + String(velocity_in_feet_per_second, 4) + "ft/2, Recommended GPS Period: " + String(recommended_gps_refresh_period_sec) + "s";
     }
 
     /*------------------------------------------------------------------------------------------

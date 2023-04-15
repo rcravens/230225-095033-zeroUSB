@@ -8,15 +8,15 @@ namespace rlc
         // NMEA Format: DDDMM.MMMMM
         //
         int period_pos = val_str.indexOf(".");
-        if(period_pos < 0)
+        if (period_pos < 0)
         {
             return 99999.99;
         }
 
-        double degrees = val_str.substring(0, period_pos-2).toDouble();
-        double minutes = val_str.substring(period_pos-2).toDouble();
+        double degrees = val_str.substring(0, period_pos - 2).toDouble();
+        double minutes = val_str.substring(period_pos - 2).toDouble();
 
-        return degrees + minutes/60;
+        return degrees + minutes / 60;
     }
 
     GpsPoint GpsPoint::from_nmea_str(String &str)
@@ -114,7 +114,7 @@ namespace rlc
     {
         if (!is_valid)
         {
-            return "Invalid GPS Point";
+            //return "Invalid GPS Point";
         }
 
         return "Date/Time: " + datetime.to_date_time_string() + ", Latitude: " + String(latitude, 6) + ", Longitude: " + String(longitude, 6) + ", Altitude: " + String(altitude, 6);
@@ -124,6 +124,92 @@ namespace rlc
     {
         GpsCalculator calc(*this, from);
         return calc.distance_in_miles;
+    }
+
+    String GpsPoint::serialize()
+    {
+        // format: y,m,d,h,m,s,lat,lng,alt
+        String str = String(datetime.year) + "," + String(datetime.month) + "," + String(datetime.day) + "," + String(datetime.hour) + "," + String(datetime.minute) + "," + String(datetime.second) + "," + String(latitude, 6) + "," + String(longitude, 6) + "," + String(altitude, 6);
+
+        return str;
+    }
+
+    bool GpsPoint::deserialize(String &str)
+    {
+        int start = 0;
+        int end = str.indexOf(",", start);
+        if (end == -1)
+        {
+            return false;
+        }
+        unsigned int year = str.substring(start, end).toInt();
+
+        start = end + 1;
+        end = str.indexOf(",", start);
+        if (end == -1)
+        {
+            return false;
+        }
+        unsigned int month = str.substring(start, end).toInt();
+
+        start = end + 1;
+        end = str.indexOf(",", start);
+        if (end == -1)
+        {
+          return false;
+        }
+        unsigned int day = str.substring(start, end).toInt();
+
+        start = end + 1;
+        end = str.indexOf(",", start);
+        if (end == -1)
+        {
+            return false;
+        }
+        unsigned int hour = str.substring(start, end).toInt();
+
+        start = end + 1;
+        end = str.indexOf(",", start);
+        if (end == -1)
+        {
+           return false;
+        }
+        unsigned int minute = str.substring(start, end).toInt();
+
+        start = end + 1;
+        end = str.indexOf(",", start);
+        if (end == -1)
+        {
+           return false;
+        }
+        unsigned int second = str.substring(start, end).toInt();
+
+        start = end + 1;
+        end = str.indexOf(",", start);
+        if (end == -1)
+        {
+           return false;
+        }
+        double lat = str.substring(start, end).toDouble();
+
+        start = end + 1;
+        end = str.indexOf(",", start);
+        if (end == -1)
+        {
+            return false;
+        }
+        double lng = str.substring(start, end).toDouble();
+
+        start = end + 1;
+        double alt = str.substring(start).toDouble();
+
+        datetime.set(year, month, day, hour, minute, second);
+
+        latitude = lat;
+        longitude = lng;
+        altitude = alt;
+
+        return validate();
     }
 
     /*------------------------------------------------------------------------------------------
@@ -136,19 +222,16 @@ namespace rlc
 
         if (!datetime.is_valid)
         {
-//            SerialUSB.println("Date is not valid.");
             is_valid = false;
         }
 
         if (latitude < -90 || latitude > 90)
         {
-//            SerialUSB.println("Latitude is not valid.");
             is_valid = false;
         }
 
         if (longitude < -180 || longitude > 180)
         {
-//            SerialUSB.println("Longitude is not valid.");
             is_valid = false;
         }
 

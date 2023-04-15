@@ -20,6 +20,10 @@ namespace rlc
         bool copy(String &source_name, String &destination_name, const unsigned int skip);
         bool append(String &file_name, String &new_line);
         bool remove(String &file_name);
+
+        bool write_content(String &file_name, String &content);
+        String read_content(String &file_name);
+
     private:
         rlc::Console &_console;
         bool _is_debug;

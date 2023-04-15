@@ -22,7 +22,7 @@ namespace rlc
         double velocity_in_miles_per_hour;
         double velocity_in_feet_per_second;
         
-        float recommended_gps_refresh_period_ms;
+        float recommended_gps_refresh_period_sec;
 
         GpsCalculator(GpsPoint &pt1, GpsPoint &pt2);
 

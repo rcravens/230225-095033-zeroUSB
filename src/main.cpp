@@ -14,7 +14,6 @@
 #include "GpsCalculator.h"
 #include "MyMath.h"
 
-
 #ifdef espressif32
 rlc::Console console(Serial);
 HardwareSerial SerialAT(1);
@@ -32,6 +31,7 @@ unsigned long num_points_in_cache = 0;
 
 String battery_data_file_name = "/bat_data.csv";
 
+String last_point_file_name = "/last_gps_point.txt";
 
 rlc::Hardware hw(command_helper, console, false);
 rlc::FileHelper file_helper(console, false);
@@ -49,10 +49,38 @@ rlc::GpsPoint new_point;
 float total_distance_traveled_feet = 0;
 float distance_since_last_post_feet = 0;
 
-#define PCIE_TX_PIN      45
-#define PCIE_RX_PIN      46
+int bootCount = 0;
+void print_wakeup_reason()
+{
+    esp_sleep_wakeup_cause_t wakeup_reason;
+
+    wakeup_reason = esp_sleep_get_wakeup_cause();
+
+    switch (wakeup_reason)
+    {
+    case ESP_SLEEP_WAKEUP_EXT0:
+        Serial.println("Wakeup caused by external signal using RTC_IO");
+        break;
+    case ESP_SLEEP_WAKEUP_EXT1:
+        Serial.println("Wakeup caused by external signal using RTC_CNTL");
+        break;
+    case ESP_SLEEP_WAKEUP_TIMER:
+        Serial.println("Wakeup caused by timer");
+        break;
+    case ESP_SLEEP_WAKEUP_TOUCHPAD:
+        Serial.println("Wakeup caused by touchpad");
+        break;
+    case ESP_SLEEP_WAKEUP_ULP:
+        Serial.println("Wakeup caused by ULP program");
+        break;
+    default:
+        Serial.printf("Wakeup was not caused by deep sleep: %d\n", wakeup_reason);
+        break;
+    }
+}
+
 void setup()
-{   
+{
     hw.init();
 
     console.println("------------------------------------------NEW START------------------------------------------");
@@ -89,6 +117,15 @@ void setup()
     console.println("                          IMEI: " + hw.imei);
 
     num_points_in_cache = file_helper.line_count(gps_data_file_name);
+
+    // deserialize from SD card the last gps point that was cached
+    //
+    String last_point_content = file_helper.read_content(last_point_file_name);
+    if (last_point_content.length() > 0)
+    {
+        last_point_cached.deserialize(last_point_content);
+    }
+
     // file_helper.remove(gps_data_file_name);
 
     console.println("---------------------------------------------------------------------------------------------");
@@ -99,17 +136,23 @@ void setup()
         file_helper.remove(battery_data_file_name);
     }
     console.println("---------------------------------------------------------------------------------------------");
+
+    ++bootCount;
+    Serial.println("Boot number: " + String(bootCount));
+    Serial.println(last_point_cached.to_string());
+    // Print the wakeup reason for ESP32
+    print_wakeup_reason();
 }
 
 void loop()
-{  
+{
     console.println("\n\n");
     console.println("------------------------------TOP-OF-THE-LOOP------------------------------------------------");
 
     // Monitor the current battery voltage and state of charge
     //
     battery.refresh();
-    
+
     /*String new_line = battery.to_csv();
     if (!file_helper.append(battery_data_file_name, new_line))
     {
@@ -117,13 +160,12 @@ void loop()
         console.println(new_line);
     }*/
 
-    
     console.println(battery.to_string());
     console.println("\n");
 
     // Low power mode options
     //
-    unsigned long gps_refresh_period = battery.is_low_battery_mode() ? rlc::Config::gps_refresh_period_low_battery_ms : rlc::Config::gps_refresh_period_default_ms;
+    unsigned long gps_refresh_period_sec = battery.is_low_battery_mode() ? rlc::Config::gps_refresh_period_low_battery_sec : rlc::Config::gps_refresh_period_default_sec;
     if (battery.is_low_battery_mode() && !has_entered_low_power_mode)
     {
         sms.send("000", "Switched to low power mode. Come find me and swap batteries.");
@@ -159,6 +201,11 @@ void loop()
                 {
                     last_point_cached.copy(new_point);
 
+                    // Serialize this last cachced point to the SD card
+                    //
+                    String last_point_content = last_point_cached.serialize();
+                    file_helper.write_content(last_point_file_name, last_point_content);
+
                     total_distance_traveled_feet += calc.distance_in_feet;
                     distance_since_last_post_feet += calc.distance_in_feet;
 
@@ -176,10 +223,10 @@ void loop()
 
             // Adjust the refresh period based on velocity
             //
-            if(calc.is_valid)
+            if (calc.is_valid)
             {
                 console.println(calc.to_string());
-                gps_refresh_period = battery.is_low_battery_mode() ? rlc::Config::gps_refresh_period_low_battery_ms : calc.recommended_gps_refresh_period_ms;
+                gps_refresh_period_sec = battery.is_low_battery_mode() ? rlc::Config::gps_refresh_period_low_battery_sec : calc.recommended_gps_refresh_period_sec;
             }
         }
     }
@@ -197,7 +244,7 @@ void loop()
             {
                 lines.trim();
 
-                String content = "millis=" + String(millis()) + "&gps_refresh_period=" + String(gps_refresh_period) + "&" + battery.to_http_post() + "&" + hw.to_http_post() + "&total_distance_traveled_feet=" + String(total_distance_traveled_feet, 2) + "&distance_since_last_post_feet=" + String(distance_since_last_post_feet, 2) + "&total_points_since_power_on=" + String(total_points_sent + num_points_in_cache) + "&num_points=" + String(num_points_in_cache) + "&lines=" + lines;
+                String content = "millis=" + String(millis()) + "&gps_refresh_period_sec=" + String(gps_refresh_period_sec) + "&" + battery.to_http_post() + "&" + hw.to_http_post() + "&total_distance_traveled_feet=" + String(total_distance_traveled_feet, 2) + "&distance_since_last_post_feet=" + String(distance_since_last_post_feet, 2) + "&total_points_since_power_on=" + String(total_points_sent + num_points_in_cache) + "&num_points=" + String(num_points_in_cache) + "&lines=" + lines;
 
                 if (http.post(rlc::Config::api_url, content, content_type))
                 {
@@ -235,19 +282,18 @@ void loop()
 
     // Sleep
     //
-    delay(5000);
-    return;
-    if (can_sleep && gps_refresh_period > 0)
+    if (can_sleep && gps_refresh_period_sec > 0)
     {
-        if (gps_refresh_period < 120000 && !battery.is_low_battery_mode())
+        uint gps_refresh_period_ms = gps_refresh_period_sec * 1000;
+        if (gps_refresh_period_sec < 120 && !battery.is_low_battery_mode())
         {
             // High gps collection rates (< 2min) / Unlimited power
-            sleep_helper.mcu_delay_module_on(gps_refresh_period);
+            sleep_helper.mcu_delay_module_on(gps_refresh_period_ms);
         }
         else
         {
             // Low gps collection rates (> 2min) / Limited power
-            sleep_helper.mcu_deep_sleep_module_off(gps_refresh_period);
+            sleep_helper.mcu_deep_sleep_module_off(gps_refresh_period_ms);
         }
     }
 }
