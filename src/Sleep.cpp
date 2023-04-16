@@ -131,7 +131,7 @@ namespace rlc
 #endif
 #ifdef tsimcam
             // TODO: investigate esp32 sleep options
-            uint64_t sleep_time_us = adjusted_sleep * 1000;
+            uint64_t sleep_time_us = uint64_t(adjusted_sleep) * 1000;
             esp_sleep_enable_timer_wakeup(sleep_time_us);
             esp_light_sleep_start();
 #endif
