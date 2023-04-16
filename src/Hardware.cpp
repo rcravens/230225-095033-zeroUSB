@@ -18,7 +18,7 @@ namespace rlc
         begin_serial_module();
 
         pinMode(LTE_PWRKEY_PIN, OUTPUT);
-#ifdef atmelsam
+#ifdef maduino
         pinMode(LTE_RESET_PIN, OUTPUT);
         pinMode(LTE_FLIGHT_PIN, OUTPUT);
 
@@ -32,7 +32,7 @@ namespace rlc
 
     bool Hardware::init_sd()
     {
-#ifdef espressif32
+#ifdef tsimcam
         SPI.begin(SD_SCLK_PIN, SD_MISO_PIN, SD_MOSI_PIN, SD_CS_PIN);
 #endif
         if (!SD.begin(SD_CS_PIN))
@@ -174,12 +174,12 @@ namespace rlc
     {
         if (!is_module_on()) // if it's off, turn it on.
         {
-#ifdef atmelsam
+#ifdef maduino
             digitalWrite(LTE_PWRKEY_PIN, LOW);
             delay(500);
             digitalWrite(LTE_PWRKEY_PIN, HIGH);
 #endif
-#ifdef espressif32
+#ifdef tsimcam
             digitalWrite(LTE_PWRKEY_PIN, 1);
             delay(500);
             digitalWrite(LTE_PWRKEY_PIN, 0);

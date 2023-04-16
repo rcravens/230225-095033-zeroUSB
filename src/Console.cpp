@@ -2,12 +2,12 @@
 
 namespace rlc
 {
-#ifdef atmelsam
+#ifdef maduino
     Console::Console(Serial_ &console) : _console(console)
     {
     }
 #endif
-#ifdef espressif32
+#ifdef tsimcam
     Console::Console(HWCDC &console) : _console(console)
     {
     }

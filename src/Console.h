@@ -9,10 +9,10 @@ namespace rlc
     class Console
     {
     public:
-#ifdef atmelsam
+#ifdef maduino
         Console(Serial_ &console);
 #endif
-#ifdef espressif32
+#ifdef tsimcam
         Console(HWCDC &console);
 #endif
 
@@ -30,10 +30,10 @@ namespace rlc
         size_t println(const String &str);
 
     private:
-#ifdef atmelsam
+#ifdef maduino
         Serial_ &_console;
 #endif
-#ifdef espressif32
+#ifdef tsimcam
         HWCDC &_console;
 #endif
     };

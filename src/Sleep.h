@@ -4,7 +4,7 @@
 #include <Arduino.h>
 
 #include "Config.h"
-#ifdef atmelsam
+#ifdef maduino
 #include <ArduinoLowPower.h>
 #endif
 #include "Hardware.h"

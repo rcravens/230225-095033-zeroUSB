@@ -160,10 +160,10 @@ namespace rlc
             SD.remove(destination_name);
         }
 
-#ifdef atmelsam
+#ifdef maduino
         File dst_file = SD.open(destination_name, FILE_WRITE);
 #endif
-#ifdef espressif32
+#ifdef tsimcam
         File dst_file = SD.open(destination_name, FILE_WRITE, true);
 #endif
         if (!dst_file)
@@ -225,10 +225,10 @@ namespace rlc
 
     bool FileHelper::append(String &file_name, String &new_line)
     {
-#ifdef atmelsam
+#ifdef maduino
         File file = SD.open(file_name, FILE_WRITE);
 #endif
-#ifdef espressif32
+#ifdef tsimcam
         File file = SD.open(file_name, FILE_WRITE, true);
 #endif
         if (file)
@@ -254,10 +254,10 @@ namespace rlc
 
     bool FileHelper::write_content(String &file_name, String &content)
     {
-        #ifdef atmelsam
+        #ifdef maduino
         File file = SD.open(file_name, FILE_WRITE);
 #endif
-#ifdef espressif32
+#ifdef tsimcam
         File file = SD.open(file_name, FILE_WRITE, true);
 #endif
         if (file)

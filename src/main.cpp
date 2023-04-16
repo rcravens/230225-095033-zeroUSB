@@ -14,12 +14,12 @@
 #include "GpsCalculator.h"
 #include "MyMath.h"
 
-#ifdef espressif32
+#ifdef tsimcam
 rlc::Console console(Serial);
 HardwareSerial SerialAT(1);
 rlc::AtCommand command_helper(SerialAT, console, false);
 #endif
-#ifdef atmelsam
+#ifdef maduino
 rlc::Console console(SerialUSB);
 rlc::AtCommand command_helper(Serial1, console, false);
 #endif

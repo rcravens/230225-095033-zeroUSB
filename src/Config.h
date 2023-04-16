@@ -2,7 +2,7 @@
 #define Config_h
 
 
-#ifdef atmelsam
+#ifdef maduino
 
 #define LTE_RESET_PIN 6
 #define LTE_PWRKEY_PIN 5
@@ -17,7 +17,7 @@
 
 #endif
 
-#ifdef espressif32
+#ifdef tsimcam
 
 #define LTE_RESET_PIN 6
 #define LTE_PWRKEY_PIN 48

@@ -10,10 +10,10 @@ namespace rlc
 
     bool AtCommand::begin(unsigned long timeout)
     {
-#ifdef atmelsam
+#ifdef maduino
         _serial.begin(115200);
 #endif
-#ifdef espressif32
+#ifdef tsimcam
         _serial.begin(115200, SERIAL_8N1, PCIE_RX_PIN, PCIE_TX_PIN);
 #endif
         unsigned long now = millis();
