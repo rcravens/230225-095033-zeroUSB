@@ -78,6 +78,34 @@ namespace rlc
         module_turn_on();
     }
 
+    String Sleep::wakeup_reason()
+{
+#ifdef atmelsam
+    return "Reason unknown on maduino";
+#endif
+#ifdef espressif32
+    esp_sleep_wakeup_cause_t wakeup_reason;
+
+    wakeup_reason = esp_sleep_get_wakeup_cause();
+
+    switch (wakeup_reason)
+    {
+    case ESP_SLEEP_WAKEUP_EXT0:
+        return "Wakeup caused by external signal using RTC_IO";
+    case ESP_SLEEP_WAKEUP_EXT1:
+        return "Wakeup caused by external signal using RTC_CNTL";
+    case ESP_SLEEP_WAKEUP_TIMER:
+        return "Wakeup caused by timer";
+    case ESP_SLEEP_WAKEUP_TOUCHPAD:
+        return "Wakeup caused by touchpad";
+    case ESP_SLEEP_WAKEUP_ULP:
+        return "Wakeup caused by ULP program";
+    default:
+        return "Wakeup was not caused by deep sleep: " + String(wakeup_reason);
+    }
+#endif
+}
+
     /*------------------------------------------------------------------------------------------
             PRIVATE METHODS
     ------------------------------------------------------------------------------------------*/
@@ -123,7 +151,7 @@ namespace rlc
 #endif
 #ifdef espressif32
             // TODO: investigate esp32 deep sleep options
-            uint64_t sleep_time_us = adjusted_sleep * 1000;
+            uint64_t sleep_time_us = uint64_t(adjusted_sleep) * 1000;
             esp_sleep_pd_config(ESP_PD_DOMAIN_RTC_PERIPH, ESP_PD_OPTION_OFF);
             esp_sleep_pd_config(ESP_PD_DOMAIN_RTC_SLOW_MEM, ESP_PD_OPTION_OFF);
             esp_sleep_pd_config(ESP_PD_DOMAIN_RTC_FAST_MEM, ESP_PD_OPTION_OFF);

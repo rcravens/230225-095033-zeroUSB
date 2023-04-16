@@ -1,8 +1,6 @@
 #ifndef Config_h
 #define Config_h
 
-#define espressif32
-// #define atmelsam
 
 #ifdef atmelsam
 

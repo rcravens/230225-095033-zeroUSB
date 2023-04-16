@@ -34,7 +34,7 @@ namespace rlc
         unsigned long overhead = time_diff_in_seconds - rlc::Config::gps_refresh_period_default_sec;
         recommended_gps_refresh_period_sec = rlc::Config::gps_refresh_period_default_sec - overhead;
 
-        // Increase our sampling rate if we moved beyond the ideal
+        // Increase our sampling rate if we moved beyond the ideal distance
         //
         if (distance_in_feet > rlc::Config::gps_ideal_distance_between_points_feet && velocity_in_feet_per_second > 0)
         {
@@ -55,7 +55,7 @@ namespace rlc
 
     String GpsCalculator::to_string()
     {
-        return "Distance: " + String(distance_in_miles, 4) + "mi = " + String(distance_in_feet, 4) + "ft, Velocity: " + String(velocity_in_miles_per_hour, 4) + "mph = " + String(velocity_in_feet_per_second, 4) + "ft/2, Recommended GPS Period: " + String(recommended_gps_refresh_period_sec) + "s";
+        return "Distance: " + String(distance_in_miles, 4) + "mi = " + String(distance_in_feet, 4) + "ft, Velocity: " + String(velocity_in_miles_per_hour, 4) + "mph = " + String(velocity_in_feet_per_second, 4) + "ft/s, Recommended GPS Period: " + String(recommended_gps_refresh_period_sec) + "s";
     }
 
     /*------------------------------------------------------------------------------------------

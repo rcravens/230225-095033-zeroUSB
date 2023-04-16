@@ -5,7 +5,7 @@
 
 #include "Config.h"
 #ifdef atmelsam
-    #include <ArduinoLowPower.h>
+#include <ArduinoLowPower.h>
 #endif
 #include "Hardware.h"
 #include "Console.h"
@@ -16,7 +16,7 @@ namespace rlc
     {
     public:
         Sleep(rlc::Hardware &hardware, rlc::Console &console);
-        
+
         void mcu_delay_module_on(int sleep_time_ms);
         void mcu_sleep_module_on(int sleep_time_ms);
         void mcu_deep_sleep_module_on(int sleep_time_ms);
@@ -28,6 +28,8 @@ namespace rlc
         void mcu_delay_module_off(int sleep_time_ms);
         void mcu_sleep_module_off(int sleep_time_ms);
         void mcu_deep_sleep_module_off(int sleep_time_ms);
+
+        String wakeup_reason();
 
     private:
         int pre_sleep(int sleep_time_ms);

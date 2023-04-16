@@ -160,7 +160,12 @@ namespace rlc
             SD.remove(destination_name);
         }
 
+#ifdef atmelsam
+        File dst_file = SD.open(destination_name, FILE_WRITE);
+#endif
+#ifdef espressif32
         File dst_file = SD.open(destination_name, FILE_WRITE, true);
+#endif
         if (!dst_file)
         {
             last_error = "Failed to open destination file";
@@ -220,7 +225,12 @@ namespace rlc
 
     bool FileHelper::append(String &file_name, String &new_line)
     {
-        File file = SD.open(file_name, FILE_APPEND, true);
+#ifdef atmelsam
+        File file = SD.open(file_name, FILE_WRITE);
+#endif
+#ifdef espressif32
+        File file = SD.open(file_name, FILE_WRITE, true);
+#endif
         if (file)
         {
             file.println(new_line);
@@ -244,7 +254,12 @@ namespace rlc
 
     bool FileHelper::write_content(String &file_name, String &content)
     {
+        #ifdef atmelsam
+        File file = SD.open(file_name, FILE_WRITE);
+#endif
+#ifdef espressif32
         File file = SD.open(file_name, FILE_WRITE, true);
+#endif
         if (file)
         {
             file.println(content);
