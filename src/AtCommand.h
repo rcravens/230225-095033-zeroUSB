@@ -20,6 +20,8 @@ namespace rlc
         bool send_command_and_wait(String command);
         String send_data(String data, const int timeout);
         String send_data(String data);
+        size_t write(String data, const int timeout);
+        size_t write(const uint8_t *buffer, size_t size, const int timeout);
         void set_debug_for_next_command();
         void start_verbose();
         void end_verbose();

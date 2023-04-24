@@ -56,6 +56,9 @@ namespace rlc
         static const float gps_distance_threshold_feet;
         static const float gps_max_time_threshold_seconds;
 
+        static const bool is_camera_save_to_sd;
+        static const bool is_camera_upload_to_api;
+
     private:
     };
 }

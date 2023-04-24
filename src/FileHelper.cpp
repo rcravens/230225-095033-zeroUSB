@@ -138,6 +138,11 @@ namespace rlc
         return num_lines;
     }
 
+    bool FileHelper::exists(String &file_name)
+    {
+        return SD.exists(file_name);
+    }
+
     bool FileHelper::copy(String &source_name, String &destination_name, const unsigned int skip)
     {
         last_error = "";
@@ -252,9 +257,26 @@ namespace rlc
         return false;
     }
 
+    bool FileHelper::write(String &file_name, const uint8_t *buf, size_t size)
+    {
+#ifdef maduino
+        File file = SD.open(file_name, FILE_WRITE);
+#endif
+#ifdef tsimcam
+        File file = SD.open(file_name, FILE_WRITE, true);
+#endif
+        if (file)
+        {
+            file.write(buf, size);
+
+            return true;
+        }
+        return false;
+    }
+
     bool FileHelper::write_content(String &file_name, String &content)
     {
-        #ifdef maduino
+#ifdef maduino
         File file = SD.open(file_name, FILE_WRITE);
 #endif
 #ifdef tsimcam

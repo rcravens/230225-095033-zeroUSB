@@ -13,6 +13,7 @@
 #include "GpsPoint.h"
 #include "GpsCalculator.h"
 #include "MyMath.h"
+#include "Camera.h"
 
 #ifdef tsimcam
 rlc::Console console(Serial);
@@ -33,13 +34,16 @@ String battery_data_file_name = "/bat_data.csv";
 
 String last_point_file_name = "/last_gps_point.txt";
 
+String last_photo_file_name = "/photo.jpg";
+
 rlc::Hardware hw(command_helper, console, false);
 rlc::FileHelper file_helper(console, false);
 rlc::Gps gps(command_helper);
-rlc::Http http(command_helper);
+rlc::Http http(command_helper, console);
 rlc::Sleep sleep_helper(hw, console);
 rlc::Battery battery(rlc::Config::battery_zero_point_voltage, rlc::Config::battery_max_voltage, rlc::Config::battery_low_mode_percent);
 rlc::Sms sms(command_helper);
+rlc::Camera camera;
 
 unsigned long total_points_sent = 0;
 bool has_entered_low_power_mode = false;
@@ -49,17 +53,23 @@ rlc::GpsPoint new_point;
 float total_distance_traveled_feet = 0;
 float distance_since_last_post_feet = 0;
 
-RTC_DATA_ATTR int bootCount = 0;
-
 void setup()
 {
     hw.init();
 
     console.println("------------------------------------------NEW START------------------------------------------");
+#ifdef maduino
     console.println("Maduino Zero 4G LTE(SIM7600X)");
     console.println("                         Board: https://www.makerfabs.com/maduino-zero-4g-lte-sim7600.html");
     console.println("                    Board Wiki: https://wiki.makerfabs.com/Maduino_Zero_4G_LTE.html");
     console.println("                  Board Github: https://github.com/Makerfabs/Maduino-Zero-4G-LTE");
+    console.println("           SIM7600 Command Set: https://github.com/Makerfabs/Maduino-Zero-4G-LTE/blob/main/A76XX%20Series_AT_Command_Manual_V1.05.pdf");
+#endif
+#ifdef tsimcam
+    console.println("T-SIMCAM ESP32-S3 LTE(SIM7600X)");
+    console.println("                         Board: https://www.lilygo.cc/products/t-simcam");
+    console.println("                  Board Github: https://github.com/Xinyuan-LilyGO/LilyGo-Camera-Series");
+#endif
     console.println("           SIM7600 Command Set: https://github.com/Makerfabs/Maduino-Zero-4G-LTE/blob/main/A76XX%20Series_AT_Command_Manual_V1.05.pdf");
     console.println("               Twilio SIM Card: https://www.twilio.com/docs/iot/supersim");
     console.println("---------------------------------------------------------------------------------------------");
@@ -109,12 +119,14 @@ void setup()
     }
     console.println("---------------------------------------------------------------------------------------------");
 
-    ++bootCount;
-    Serial.println("Boot number: " + String(bootCount));
     Serial.println(last_point_cached.to_string());
 
     // Print the wakeup reason for ESP32
     console.println(sleep_helper.wakeup_reason());
+
+    // Initialize the camera
+    //
+    camera.initialize();
 }
 
 void loop()
@@ -148,7 +160,7 @@ void loop()
     // Collect the current location
     //
     bool can_sleep = false;
-    if (gps.current_location())
+    if (false && gps.current_location())
     {
         new_point.copy(gps.last_gps_point);
         console.println("New GPS Data: " + new_point.to_string());
@@ -244,6 +256,53 @@ void loop()
         else
         {
             console.println("No cellular found.");
+        }
+    }
+
+    // Collect a new photo
+    //
+    if (rlc::Config::is_camera_save_to_sd || rlc::Config::is_camera_upload_to_api)
+    {
+        if (camera.is_initialized && camera.take_photo())
+        {
+            console.println("Camera: Photo was taken.");
+
+            if (rlc::Config::is_camera_save_to_sd)
+            {
+                if (file_helper.write(last_photo_file_name, camera.photo_buffer, camera.photo_buffer_size))
+                {
+                    console.println("Camera: Photo saved to SD card.");
+                }
+                else
+                {
+                    console.println("Camera: Failed to write photo to SD card.");
+                }
+            }
+
+            if (rlc::Config::is_camera_upload_to_api)
+            {
+                if (hw.is_cellular_connected(true))
+                {
+                    if (http.post_file_buffer(rlc::Config::api_url, camera.photo_buffer, camera.photo_buffer_size))
+                    {
+                        console.println("Camera: Photo uploaded to API");
+                    }
+                    else
+                    {
+                        console.println("Camera: Failed to upload photo to API.");
+                    }
+                }
+                else
+                {
+                    console.println("Photo Upload: No cellular found.");
+                }
+            }
+
+            camera.return_buffer();
+        }
+        else
+        {
+            console.println("Camera Error: " + camera.last_error);
         }
     }
 

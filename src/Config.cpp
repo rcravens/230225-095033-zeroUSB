@@ -37,7 +37,7 @@ namespace rlc
 
     // The default refresh period (ms) for gps data collection. This is used as an upper bound for the computed recommendation.
     //
-    const unsigned long Config::gps_refresh_period_default_sec = 3600;
+    const unsigned long Config::gps_refresh_period_default_sec = 15;
 
     // The low battery mode refresh period (ms) for gps data collection
     //
@@ -55,4 +55,12 @@ namespace rlc
     //
     const float Config::gps_max_time_threshold_seconds = 120;
 
+
+    // Save the most recent photo to the SD card
+    //
+    const bool Config::is_camera_save_to_sd = true;
+
+    // Upload the most recent photo to the API
+    //
+    const bool Config::is_camera_upload_to_api = true;
 }
