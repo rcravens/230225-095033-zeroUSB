@@ -44,12 +44,14 @@ rlc::Sleep sleep_helper(hw, console);
 rlc::Battery battery(rlc::Config::battery_zero_point_voltage, rlc::Config::battery_max_voltage, rlc::Config::battery_low_mode_percent);
 rlc::Sms sms(command_helper);
 rlc::Camera camera;
+rlc::DateTime datetime;
 
 unsigned long total_points_sent = 0;
 bool has_entered_low_power_mode = false;
 
 rlc::GpsPoint last_point_cached;
 rlc::GpsPoint new_point;
+
 float total_distance_traveled_feet = 0;
 float distance_since_last_post_feet = 0;
 
@@ -57,7 +59,16 @@ void setup()
 {
     hw.init();
 
-    console.println("------------------------------------------NEW START------------------------------------------");
+    bool is_sd_ready = hw.init_sd();
+    bool is_module_on = hw.turn_on_module();
+    bool is_module_configured = is_module_on && hw.init_module();
+
+    String sd_status = is_sd_ready ? "YES" : "NO";
+    String module_on_status = is_module_on ? "YES" : "NO";
+    String module_configured_status = is_module_configured ? "YES" : "NO";
+
+    sleep(5);
+    console.println("\n------------------------------------------NEW START------------------------------------------");
 #ifdef maduino
     console.println("Maduino Zero 4G LTE(SIM7600X)");
     console.println("                         Board: https://www.makerfabs.com/maduino-zero-4g-lte-sim7600.html");
@@ -73,18 +84,13 @@ void setup()
     console.println("           SIM7600 Command Set: https://github.com/Makerfabs/Maduino-Zero-4G-LTE/blob/main/A76XX%20Series_AT_Command_Manual_V1.05.pdf");
     console.println("               Twilio SIM Card: https://www.twilio.com/docs/iot/supersim");
     console.println("---------------------------------------------------------------------------------------------");
-
-    bool is_sd_ready = hw.init_sd();
-    bool is_module_on = hw.turn_on_module();
-    bool is_module_configured = is_module_on && hw.init_module();
-
-    String sd_status = is_sd_ready ? "YES" : "NO";
-    String module_on_status = is_module_on ? "YES" : "NO";
-    String module_configured_status = is_module_configured ? "YES" : "NO";
-
     console.println("        SD Storage Initialized: " + sd_status);
     console.println("             SIM7600 Module On: " + module_on_status);
     console.println("     SIM7600 Module Configured: " + module_configured_status);
+    console.println("                  Manufacturer: " + hw.manufacturer);
+    console.println("                         Model: " + hw.model);
+    console.println("                          IMEI: " + hw.imei);
+    console.println("---------------------------------------------------------------------------------------------");
 
     if (!is_sd_ready || !is_module_on || !is_module_configured)
     {
@@ -94,9 +100,6 @@ void setup()
             // Halt indefinitely....something on the board is not ready
         }
     }
-    console.println("                  Manufacturer: " + hw.manufacturer);
-    console.println("                         Model: " + hw.model);
-    console.println("                          IMEI: " + hw.imei);
 
     num_points_in_cache = file_helper.line_count(gps_data_file_name);
 
@@ -110,43 +113,45 @@ void setup()
 
     // file_helper.remove(gps_data_file_name);
 
-    console.println("---------------------------------------------------------------------------------------------");
     console.println("Battery Data");
     file_helper.print_all_lines(battery_data_file_name);
     if (false || file_helper.line_count(battery_data_file_name) > 500)
     {
         file_helper.remove(battery_data_file_name);
     }
-    console.println("---------------------------------------------------------------------------------------------");
+    //console.println("---------------------------------------------------------------------------------------------");
 
-    Serial.println(last_point_cached.to_string());
+    // Print GPS data
+    // Serial.println(last_point_cached.to_string());
 
     // Print the wakeup reason for ESP32
     console.println(sleep_helper.wakeup_reason());
 
     // Initialize the camera
-    //
     camera.initialize();
+
+    // console.println("\n\n");
+    
 }
+
 
 void loop()
 {
-    console.println("\n\n");
     console.println("------------------------------TOP-OF-THE-LOOP------------------------------------------------");
 
+    console.println(datetime.to_date_string());
     // Monitor the current battery voltage and state of charge
     //
     battery.refresh();
 
-    /*String new_line = battery.to_csv();
+    String new_line = battery.to_csv();
     if (!file_helper.append(battery_data_file_name, new_line))
     {
         console.println("Failed to append battery data.");
         console.println(new_line);
-    }*/
+    }
 
     console.println(battery.to_string());
-    console.println("\n");
 
     // Low power mode options
     //
@@ -159,8 +164,12 @@ void loop()
 
     // Collect the current location
     //
-    bool can_sleep = false;
-    if (false && gps.current_location())
+    // bool can_sleep = false;
+
+    // Print cached GPS data
+    console.println("Old GPS Data: " + last_point_cached.to_string());
+
+    if (true && gps.current_location())
     {
         new_point.copy(gps.last_gps_point);
         console.println("New GPS Data: " + new_point.to_string());
@@ -196,14 +205,14 @@ void loop()
 
                     num_points_in_cache += 1;
 
-                    can_sleep = true;
+                    // can_sleep = true;
                 }
             }
             else
             {
                 console.println("New point not far enough away from previously recorded point.");
 
-                can_sleep = true;
+                // can_sleep = true;
             }
 
             // Adjust the refresh period based on velocity
@@ -218,7 +227,7 @@ void loop()
 
     // Post to API if we have collected enough location points
     //
-    console.println("\n");
+    // console.println("\n");
     console.println("Number of points in cache=" + String(num_points_in_cache));
     if (num_points_in_cache >= rlc::Config::api_num_gps_points_in_payload)
     {
@@ -259,6 +268,7 @@ void loop()
         }
     }
 
+
     // Collect a new photo
     //
     if (rlc::Config::is_camera_save_to_sd || rlc::Config::is_camera_upload_to_api)
@@ -296,6 +306,11 @@ void loop()
                 {
                     console.println("Photo Upload: No cellular found.");
                 }
+
+                // Pause everything for 5 min to save bandwidth
+                console.println("Pausing for 5 minutes.");
+                sleep(300);
+
             }
 
             camera.return_buffer();
@@ -308,12 +323,14 @@ void loop()
 
     // Inter serial port communications
     //
-    hw.send_module_output_to_console_out();
+    //hw.send_module_output_to_console_out();
+    //hw.send_console_input_to_module();
 
-    hw.send_console_input_to_module();
-
+    sleep(10);
+    
     // Sleep
     //
+/*
     if (can_sleep && gps_refresh_period_sec > 0)
     {
         uint gps_refresh_period_ms = gps_refresh_period_sec * 1000;
@@ -328,4 +345,5 @@ void loop()
             sleep_helper.mcu_deep_sleep_module_off(gps_refresh_period_ms);
         }
     }
+*/
 }

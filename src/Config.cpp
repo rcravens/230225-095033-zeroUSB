@@ -19,8 +19,8 @@ namespace rlc
 
     // The API URL where data will be HTTP POSTed to
     //
-    const char Config::api_url[] = "https://webhook.site/6927a322-215e-4e0e-a625-ca21ee24a7e9";
-
+    const char Config::api_url[] = "https://webhook.site/af084219-7bf5-444b-964c-ee7323f274b0";
+    
     // The number of points that are cached before sending to the API
     //
     const unsigned long Config::api_num_gps_points_in_payload = 1;
@@ -62,5 +62,5 @@ namespace rlc
 
     // Upload the most recent photo to the API
     //
-    const bool Config::is_camera_upload_to_api = true;
+    const bool Config::is_camera_upload_to_api = false;
 }
