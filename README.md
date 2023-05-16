@@ -1,6 +1,8 @@
 
 # 4G Trail Camera
 
+This project started with [Adventure Time](https://www.youtube.com/@adventuretime5020) posting vides about it.
+
 #### Project Goal
 My goal is to create "trail camera" to take pictures of the properity are my local Radio Control Air Field. [TORKS.org](torks.org). 
 
