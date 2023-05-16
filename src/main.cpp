@@ -35,6 +35,7 @@ String battery_data_file_name = "/bat_data.csv";
 String last_point_file_name = "/last_gps_point.txt";
 
 String last_photo_file_name = "/photo.jpg";
+String date_photo_file_name = "/photo-%s.jpg";
 
 rlc::Hardware hw(command_helper, console, false);
 rlc::FileHelper file_helper(console, false);
@@ -279,7 +280,8 @@ void loop()
 
             if (rlc::Config::is_camera_save_to_sd)
             {
-                if (file_helper.write(last_photo_file_name, camera.photo_buffer, camera.photo_buffer_size))
+                String photo_file_name = date_photo_file_name + datetime.to_yyyymmddhhmmss();
+                if (file_helper.write(photo_file_name, camera.photo_buffer, camera.photo_buffer_size))
                 {
                     console.println("Camera: Photo saved to SD card.");
                 }
