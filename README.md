@@ -17,10 +17,10 @@ T-SIMCAM ESP32-S3 CAM board specifications:
 * Connectivity – Optional NB-IoT, 2G GSM, or 3G/4G LTE module via mPCIe socket and SIM card slot
 * USB – 1x USB Type-C port for power and programming
 * Expansion
-** Grove connector
-** mPCIe socket (UART) for optional cellular module
-** 5V DC input via USB-C port
-** Support for LiPo battery through a 2-pin JST connector
+ * Grove connector
+ * mPCIe socket (UART) for optional cellular module
+ * 5V DC input via USB-C port
+ * Support for LiPo battery through a 2-pin JST connector
 
 The board can make use of the AI capabilities from the ESP32-S3 microcontroller through the built-in camera and microphone and offers two options for power with 5V through a USB Type-C port, as well as a 2-pin JST connector for connecting a battery.
 
