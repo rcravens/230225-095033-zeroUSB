@@ -40,6 +40,13 @@ namespace rlc
         return makeTime(tm);
     }
 
+    String DateTime::to_yyyymmddhhmmss() 
+    {
+        char buffer[16];
+        sprintf(buffer, "%04d%02d%02d%02d%02d%02d", year, month, day, hour, minute, second);
+        return String(buffer);
+    }
+
     long DateTime::diff_in_seconds(DateTime &ref)
     {
         return to_seconds() - ref.to_seconds();

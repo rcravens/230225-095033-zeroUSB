@@ -1,8 +1,6 @@
 
 # 4G Trail Camera
 
-
-
 This code is built for:
 
 The LilyGO T-SimCam (https://www.lilygo.cc/products/t-simcam) and the
@@ -30,5 +28,31 @@ My goal is to create "trail" camera used to take pictures only in daylight hours
 
 Pictures should be written to the SD Card or uploaded to an Amazon S3 bucket or posted to a web API.  
 File names should include a time stamp taken from the GPS. 
+
+----
+## Configuration
+
+Configuration for ???? is in Config.cpp.
+
+----
+
+## Build
+
+The code is built using VisualStudio the PlatformIO plugin.
+
+----
+## Output
+
+------------------------------TOP-OF-THE-LOOP------------------------------------------------
+Invalid Date
+Battery Millis=28903250, ADC Value=2581, Voltage=4.16, Percent=95.54
+Old GPS Data: Date/Time: May 16, 2023 4:44:8 AM, Latitude: 35.533283, Longitude: -97.621324, Altitude: 375.800000
+New GPS Data: Date/Time: May 16, 2023 4:44:20 AM, Latitude: 35.533284, Longitude: -97.621324, Altitude: 376.300000
+Distance: 0.0000mi = 0.0451ft, Velocity: 0.0026mph = 0.0038ft/s, Recommended GPS Period: 15.00s
+Number of points in cache=366
+Failed to send content to API. 100 bytes added back to cache.
+Camera: Photo was taken.
+Camera: Photo saved to SD card.
+
 
 

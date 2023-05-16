@@ -139,7 +139,7 @@ void loop()
 {
     console.println("------------------------------TOP-OF-THE-LOOP------------------------------------------------");
 
-    console.println(datetime.to_date_string());
+    console.println(datetime.to_yyyymmddhhmmss());
     // Monitor the current battery voltage and state of charge
     //
     battery.refresh();
