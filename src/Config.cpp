@@ -6,15 +6,16 @@ namespace rlc
 //  Application settings
 
     // The API URL where data will be HTTP POSTed to
-    const char Config::api_url[] = "https://webhook.site/af084219-7bf5-444b-964c-ee7323f274b0";
-    
+    const char Config::api_url[] = "https://webhook.site/d4f982fd-5f07-43c1-b458-2191de552d97";
+
     // Save the most recent photo to the SD card
     const bool Config::is_camera_save_to_sd = true;
 
     // Upload the most recent photo to the API
-    const bool Config::is_camera_upload_to_api = false;
+    const bool Config::is_camera_upload_to_api = true;
 
-
+    // Number of seconds to pause (sleep?) after uploading a image
+    const unsigned long Config::wait_after_image_upload = 300;
 
     // The number of points that are cached before sending to the API
     const unsigned long Config::api_num_gps_points_in_payload = 1;

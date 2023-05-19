@@ -144,6 +144,14 @@ void loop()
     console.println("------------------------------TOP-OF-THE-LOOP------------------------------------------------");
 
     new_point.copy(gps.last_gps_point);
+//    while ( ! hw.is_cellular_connected(true))
+//    while ( ! new_point.is_valid) {
+//        new_point.copy(gps.last_gps_point);
+//        console.println("Waiting for GPS lock.");
+//        sleep( 15 );
+/    }
+
+    new_point.copy(gps.last_gps_point);
     if (new_point.is_valid)
     {
         console.println("Date/Time: " + new_point.datetime.to_date_time_string());
@@ -307,6 +315,9 @@ void loop()
                     if (http.post_file_buffer(rlc::Config::api_url, camera.photo_buffer, camera.photo_buffer_size))
                     {
                         console.println("Camera: Photo uploaded to API");
+                        // Pause to save bandwidth
+                        console.println("Pausing for to save bandwidth.\n");
+                        sleep(rlc::Config::wait_after_image_upload);
                     }
                     else
                     {
@@ -317,11 +328,6 @@ void loop()
                 {
                     console.println("Photo Upload: No cellular found.");
                 }
-
-                // Pause everything for 5 min to save bandwidth
-                console.println("Pausing for 5 minutes.");
-                sleep(300);
-
             }
 
             camera.return_buffer();
