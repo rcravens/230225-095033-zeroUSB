@@ -59,13 +59,28 @@ For testing I'm using the [WebHook.site](https://webhook.site).  *Free* posts ar
 It make take some time for the GPS to get link and the time to be set.
 
     ------------------------------TOP-OF-THE-LOOP------------------------------------------------
-    Filename=20230512142007-image.jpg
-    Battery Millis=28903250, ADC Value=2581, Voltage=4.16, Percent=95.54
-    Old GPS Data: Date/Time: May 16, 2023 4:44:8 AM, Latitude: 35.533283, Longitude: -97.621324, Altitude: 375.800000
-    New GPS Data: Date/Time: May 16, 2023 4:44:20 AM, Latitude: 35.533284, Longitude: -97.621324, Altitude: 376.300000
-    Distance: 0.0000mi = 0.0451ft, Velocity: 0.0026mph = 0.0038ft/s, Recommended GPS Period: 15.00s
-    Number of points in cache=366
-    Failed to send content to API. 100 bytes added back to cache.
+    Date/Time: May 19, 2023 7:34:32 PM
+    Battery Millis=7243805, ADC Value=2423, Voltage=3.91, Percent=67.24
+    Old GPS Data: Date/Time: May 19, 2023 7:34:32 PM, Latitude: 35.533298, Longitude: -97.621301, Altitude: 397.400000
+    New GPS Data: Date/Time: May 19, 2023 7:41:2 PM, Latitude: 35.533305, Longitude: -97.621304, Altitude: 400.700000
+    Distance: 0.0005mi = 2.4760ft, Velocity: 0.0043mph = 0.0063ft/s, Recommended GPS Period: 15.00s
+    Number of points in cache=1
+    API - 428 bytes sent
     Camera: Photo was taken.
     Camera: Photo saved to SD card.
+    Camera: Photo uploaded to API
+    Pausing for to save bandwidth.
+
+#### Receiving Server
+I've incluged a program, written in GoLang, to receive the images files.  It save the file into directory where it is run.
+
+Build it with:
+    go build receive_file.go
+
+To run it:
+    receive_file
+
+Curl example of posting a file.
+    curl -F "image=@image.jpeg" localhost:8080/upload
+
 
