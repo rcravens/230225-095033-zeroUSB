@@ -4,7 +4,7 @@
 This project started with [Adventure Time](https://www.youtube.com/@adventuretime5020) posting vides about it.
 
 #### Project Goal
-My goal is to create "trail camera" to take pictures of the properity are my local Radio Control Air Field. [TORKS.org](torks.org). 
+My goal is to create "trail camera" to take pictures of the properity are my local Radio Control Air Field. [TORKS.org](https://torks.org). 
 
 To keep the 4G data bandwidth down I'd like to send images only in daylight hours and when motion is detected. Because the board has a Grove interface I may include weather data. 
 

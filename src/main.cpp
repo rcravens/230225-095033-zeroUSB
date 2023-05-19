@@ -1,3 +1,6 @@
+/*
+  4G Trail Camera 
+*/
 #include <Arduino.h>
 #include "Config.h"
 #include "Console.h"
@@ -34,8 +37,8 @@ String battery_data_file_name = "/bat_data.csv";
 
 String last_point_file_name = "/last_gps_point.txt";
 
-String last_photo_file_name = "/photo.jpg";
-String date_photo_file_name = "/photo-%s.jpg";
+String photo_file_name = "/photo.jpg";
+String date_photo_file_name = "-photo.jpg";
 
 rlc::Hardware hw(command_helper, console, false);
 rlc::FileHelper file_helper(console, false);
@@ -140,10 +143,18 @@ void loop()
 {
     console.println("------------------------------TOP-OF-THE-LOOP------------------------------------------------");
 
-    console.println(datetime.to_yyyymmddhhmmss());
-    // Monitor the current battery voltage and state of charge
-    //
-    battery.refresh();
+    new_point.copy(gps.last_gps_point);
+    if (new_point.is_valid)
+    {
+        console.println("Date/Time: " + new_point.datetime.to_date_time_string());
+    } 
+    else 
+    {
+        console.println("Invalid GPS data");
+    }
+
+
+    battery.refresh();          // Monitor the current battery voltage and state of charge
 
     String new_line = battery.to_csv();
     if (!file_helper.append(battery_data_file_name, new_line))
@@ -155,7 +166,6 @@ void loop()
     console.println(battery.to_string());
 
     // Low power mode options
-    //
     unsigned long gps_refresh_period_sec = battery.is_low_battery_mode() ? rlc::Config::gps_refresh_period_low_battery_sec : rlc::Config::gps_refresh_period_default_sec;
     if (battery.is_low_battery_mode() && !has_entered_low_power_mode)
     {
@@ -164,7 +174,6 @@ void loop()
     }
 
     // Collect the current location
-    //
     // bool can_sleep = false;
 
     // Print cached GPS data
@@ -280,7 +289,7 @@ void loop()
 
             if (rlc::Config::is_camera_save_to_sd)
             {
-                String photo_file_name = date_photo_file_name + datetime.to_yyyymmddhhmmss();
+                photo_file_name = "/" + new_point.datetime.to_yyyymmddhhmmss() + date_photo_file_name;
                 if (file_helper.write(photo_file_name, camera.photo_buffer, camera.photo_buffer_size))
                 {
                     console.println("Camera: Photo saved to SD card.");
