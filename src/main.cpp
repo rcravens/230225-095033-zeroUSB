@@ -149,7 +149,7 @@ void loop()
 //        new_point.copy(gps.last_gps_point);
 //        console.println("Waiting for GPS lock.");
 //        sleep( 15 );
-/    }
+//    }
 
     new_point.copy(gps.last_gps_point);
     if (new_point.is_valid)

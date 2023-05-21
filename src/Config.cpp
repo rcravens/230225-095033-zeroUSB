@@ -6,7 +6,7 @@ namespace rlc
 //  Application settings
 
     // The API URL where data will be HTTP POSTed to
-    const char Config::api_url[] = "https://webhook.site/d4f982fd-5f07-43c1-b458-2191de552d97";
+    const char Config::api_url[] = "http://torks.org/JrRdd728xJ5ewKT3Cg28dFYuwgbFXKU8";
 
     // Save the most recent photo to the SD card
     const bool Config::is_camera_save_to_sd = true;
