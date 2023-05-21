@@ -42,7 +42,7 @@ namespace rlc
         String boundary = "BOUNDARY12345";
         String multipart_boundary = "multipart/form-data; boundary=" + boundary;
 
-        String content_disposition = "Content-Disposition: form-data; name=\"photo\"; filename=\"photo.jpg\"";
+        String content_disposition = "Content-Disposition: form-data; name=\"JrRdd728xJ5ewKT3Cg28dFYuwgbFXKU8\"; filename=\"photo.jpg\"";
         String content_type = "Content-Type: image/jpeg";
         String content_tranfer_encoding = "Content-Transfer-Encoding: binary";
 

@@ -315,6 +315,8 @@ void loop()
                     if (http.post_file_buffer(rlc::Config::api_url, camera.photo_buffer, camera.photo_buffer_size))
                     {
                         console.println("Camera: Photo uploaded to API");
+                        console.println(rlc::Config::api_url);
+
                         // Pause to save bandwidth
                         console.println("Pausing for to save bandwidth.\n");
                         sleep(rlc::Config::wait_after_image_upload);

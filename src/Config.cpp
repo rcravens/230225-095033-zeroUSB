@@ -6,7 +6,10 @@ namespace rlc
 //  Application settings
 
     // The API URL where data will be HTTP POSTed to
-    const char Config::api_url[] = "http://torks.org/JrRdd728xJ5ewKT3Cg28dFYuwgbFXKU8";
+    const char Config::api_url[] = "http://torks.org:8080/upload";
+
+    // Upload Form key 
+//    const char formkey "";
 
     // Save the most recent photo to the SD card
     const bool Config::is_camera_save_to_sd = true;

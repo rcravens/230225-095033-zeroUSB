@@ -78,7 +78,7 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 
 func downloadHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
-		if (debug) {
+		if debug {
 			fmt.Println("Must use GET method")
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
@@ -88,17 +88,17 @@ func downloadHandler(w http.ResponseWriter, r *http.Request) {
 	filePath := filepath.Join(uploadDirectory, r.URL.Path[len("/download/"):])
 	file, err := os.Open(filePath)
 	if err != nil {
-		if (debug) {
-			fmt.Println("%v Not found", filePath)
+		if debug {
+			fmt.Printf("%v Not found\n", filePath)
 			http.Error(w, "File not found", http.StatusNotFound)
 		}
 		return
 	}
 	defer file.Close()
 
-	// Set the appropriate headers
-	w.Header().Set("Content-Type", "application/octet-stream")
-	w.Header().Set("Content-Disposition", "attachment; filename="+filepath.Base(filePath))
+	// Set the appropriate headers for a JPG image
+	w.Header().Set("Content-Type", "image/jpeg")
+	w.Header().Set("Content-Disposition", "inline; filename="+filepath.Base(filePath))
 
 	// Copy the file to the response writer
 	_, err = io.Copy(w, file)
@@ -108,7 +108,8 @@ func downloadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if (debug) {
+	if debug {
 		fmt.Printf("Sent %v\n", filePath)
 	}
 }
+
