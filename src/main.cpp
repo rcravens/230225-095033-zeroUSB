@@ -42,6 +42,7 @@ String date_photo_file_name = "-photo.jpg";
 
 rlc::Hardware hw(command_helper, console, false);
 rlc::FileHelper file_helper(console, false);
+rlc::FileHelper delete_all_jpg_files();
 rlc::Gps gps(command_helper);
 rlc::Http http(command_helper, console);
 rlc::Sleep sleep_helper(hw, console);

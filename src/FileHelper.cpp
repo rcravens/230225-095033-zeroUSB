@@ -308,4 +308,53 @@ namespace rlc
 
         return content;
     }
+    
+    bool FileHelper::delete_all_jpg_files() 
+    {
+
+        last_error = "";
+
+        if (!SD.exists("/"))
+        {
+            last_error = "SD card not initialized";
+            return false;
+        }
+
+        File root = SD.open("/");
+        if (!root)
+        {
+             last_error = "Failed to open root directory";
+             return false;
+        }
+
+        while (true)
+        {
+            File file = root.openNextFile();
+            if (!file)
+            {
+                // No more files in the directory
+                break;
+            }
+
+//            if (!file.isDirectory() && file.name().endsWith(".jpg"))
+            if (!file.isDirectory())
+            {
+                if (!SD.remove(file.name()))
+                {
+                    last_error = "Failed to delete file: " + String(file.name());
+                    file.close();
+                    root.close();
+                    return false;
+                }
+            }
+
+            file.close();
+        }
+
+        root.close();
+
+        return true;
+    
+    }
+
 }
