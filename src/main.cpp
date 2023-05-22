@@ -72,7 +72,7 @@ void setup()
     String module_on_status = is_module_on ? "YES" : "NO";
     String module_configured_status = is_module_configured ? "YES" : "NO";
 
-    sleep(5);
+    sleep(10);
     console.println("\n------------------------------------------NEW START------------------------------------------");
 #ifdef maduino
     console.println("Maduino Zero 4G LTE(SIM7600X)");
@@ -103,6 +103,9 @@ void setup()
         sleep(5);
         esp_restart();
     }
+
+    console.println("Deleting all .jpg files.");
+    file_helper.delete_all_jpg_files();
 
     num_points_in_cache = file_helper.line_count(gps_data_file_name);
 

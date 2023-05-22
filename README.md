@@ -72,15 +72,16 @@ It make take some time for the GPS to get link and the time to be set.
     Pausing for to save bandwidth.
 
 #### Receiving Server
-I've incluged a program, written in GoLang, to receive the images files.  It save the file into directory where it is run.
+I've incluged a program, written in GoLang, to handle uploading and downloading the camera images.
+It saves files into the /image/
 
 Build it with:
-    go build receive_file.go
+    go build cam_file_server.go
 
 To run it:
-    receive_file
+    cam_file_server
 
 Curl example of posting a file.
-    curl -F "image=@image.jpeg" localhost:8080/upload
+    curl -F "<sec_key>=@photo.jpg" <host_name>:8080/upload
 
 
