@@ -98,11 +98,9 @@ void setup()
 
     if (!is_sd_ready || !is_module_on || !is_module_configured)
     {
-        console.println("\n\n!!!!!! HALTING EXECUTION - BOARD NOT READY !!!!!!");
-        while (true)
-        {
-            // Halt indefinitely....something on the board is not ready
-        }
+        console.println("\n\n!!!! ESP restart in 5 seconds !!!!!\n\n");
+        sleep(5);
+        esp_restart();
     }
 
     num_points_in_cache = file_helper.line_count(gps_data_file_name);
@@ -301,6 +299,7 @@ void loop()
                 if (file_helper.write(photo_file_name, camera.photo_buffer, camera.photo_buffer_size))
                 {
                     console.println("Camera: Photo saved to SD card.");
+                    console.println(photo_file_name);
                 }
                 else
                 {
