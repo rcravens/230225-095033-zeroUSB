@@ -84,4 +84,14 @@ To run it:
 Curl example of posting a file.
     curl -F "<sec_key>=@photo.jpg" <host_name>:8080/upload
 
+#### Other parts
+These are Amazon links to the products I purchased to finsh this project. 
 
+[LeMotech Electrical Box, IP67 Waterproof Hinged Clear Cover Stainless Steel Latch Junction Box](https://www.amazon.com/dp/B0BP7D5ZNL?ref=ppx_yo2ov_dt_b_product_details&th=1)
+[Bingfu 4G LTE Outdoor Wall Mount Waterproof Antenna SMA Male Antenna](https://www.amazon.com/dp/B07R9JGLV5?ref=ppx_yo2ov_dt_b_product_details&th=1)
+[Bingfu Vehicle Waterproof Active GPS Navigation Antenna with SMA Male Connector](https://www.amazon.com/dp/B07R7RC96G?ref=ppx_yo2ov_dt_b_product_details&th=1)
+[Letgo 5pcs IPX IPEX-1 U.FL to SMA Female Pigtail](https://www.amazon.com/dp/B01HXU1PKS?psc=1&ref=ppx_yo2ov_dt_b_product_details)
+[LUORNG 4PCS 18650 SMD Battery Clip Holder](https://www.amazon.com/dp/B09N76T4GL?psc=1&ref=ppx_yo2ov_dt_b_product_details)
+[1/4" NPT Strain Relief Nylon Cord](https://www.amazon.com/gp/product/B08MYM2TSJ/ref=ppx_yo_dt_b_asin_title_o00_s00?ie=UTF8&psc=1)
+
+![All the parts](Doc/20230524_105729.jpg)

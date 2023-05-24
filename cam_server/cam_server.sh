@@ -11,8 +11,8 @@
 ### END INIT INFO
 
 name="cam_server"
-dir="/usr/sbin"
-cmd="$name -debug"
+dir="/usr/sbin/"
+cmd="$dir$name -debug"
 user="w5tsu"
 
 pid_file="/run/$name.pid"
