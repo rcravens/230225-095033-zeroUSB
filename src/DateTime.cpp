@@ -40,6 +40,19 @@ namespace rlc
         return makeTime(tm);
     }
 
+    String DateTime::to_yyyymmddhhmmss() 
+    {
+        char buffer[16];
+/*
+        if (!is_valid)
+        {
+            return "Invalid Date";
+        }
+*/
+        sprintf(buffer, "%04d%02d%02d%02d%02d%02d", 2023, 05, 16, 22, 33, 44);
+        return String(buffer);
+    }
+
     long DateTime::diff_in_seconds(DateTime &ref)
     {
         return to_seconds() - ref.to_seconds();

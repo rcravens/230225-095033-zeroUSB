@@ -46,9 +46,11 @@ namespace rlc
         static const float battery_low_mode_percent;
 
         static const char api_url[];
+        static const char formkey[];
         static const unsigned long api_num_gps_points_in_payload;
         static const int api_max_points_per_post;
 
+        static const unsigned long wait_after_image_upload;
         static const unsigned long gps_refresh_period_smallest_sec;
         static const unsigned long gps_refresh_period_default_sec;
         static const unsigned long gps_refresh_period_low_battery_sec;

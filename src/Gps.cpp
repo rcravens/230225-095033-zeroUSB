@@ -65,5 +65,4 @@ namespace rlc
 
         return is_refreshed;
     }
-
 }
