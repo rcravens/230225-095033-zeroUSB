@@ -20,6 +20,10 @@ namespace rlc
     // Number of seconds to pause (sleep?) after uploading a image
     const unsigned long Config::wait_after_image_upload = 300;
 
+    // Pause uploading camera images at night
+    const bool Config::is_pause_camera_at_night = true;
+
+
     // The number of points that are cached before sending to the API
     const unsigned long Config::api_num_gps_points_in_payload = 1;
 

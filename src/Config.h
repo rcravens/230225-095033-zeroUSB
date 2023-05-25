@@ -60,6 +60,7 @@ namespace rlc
 
         static const bool is_camera_save_to_sd;
         static const bool is_camera_upload_to_api;
+        static const bool is_pause_camera_at_night;
 
     private:
     };

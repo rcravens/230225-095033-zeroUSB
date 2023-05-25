@@ -288,58 +288,65 @@ void loop()
         }
     }
 
+    // Check if photos should be taken at night
+    if ( ! (rlc::Config::is_pause_camera_at_night && new_point.datetime.hour > 0 && new_point.datetime.hour < 14)) {
 
-    // Collect a new photo
-    //
-    if (rlc::Config::is_camera_save_to_sd || rlc::Config::is_camera_upload_to_api)
-    {
-        if (camera.is_initialized && camera.take_photo())
+        // Collect a new photo
+        //
+        if (rlc::Config::is_camera_save_to_sd || rlc::Config::is_camera_upload_to_api)
         {
-            console.println("Camera: Photo was taken.");
-
-            if (rlc::Config::is_camera_save_to_sd)
+            if (camera.is_initialized && camera.take_photo())
             {
-                photo_file_name = "/" + new_point.datetime.to_yyyymmddhhmmss() + date_photo_file_name;
-                if (file_helper.write(photo_file_name, camera.photo_buffer, camera.photo_buffer_size))
-                {
-                    console.println("Camera: Photo saved to SD card.");
-                    console.println(photo_file_name);
-                }
-                else
-                {
-                    console.println("Camera: Failed to write photo to SD card.");
-                }
-            }
+                console.println("Camera: Photo was taken.");
 
-            if (rlc::Config::is_camera_upload_to_api)
-            {
-                if (hw.is_cellular_connected(true))
+                if (rlc::Config::is_camera_save_to_sd)
                 {
-                    if (http.post_file_buffer(rlc::Config::api_url, camera.photo_buffer, camera.photo_buffer_size))
+                    photo_file_name = "/" + new_point.datetime.to_yyyymmddhhmmss() + date_photo_file_name;
+                    if (file_helper.write(photo_file_name, camera.photo_buffer, camera.photo_buffer_size))
                     {
-                        console.println("Camera: Photo uploaded to API");
-                        console.println(rlc::Config::api_url);
-
-                        // Pause to save bandwidth
-                        console.println("Pausing for to save bandwidth.\n");
-                        sleep(rlc::Config::wait_after_image_upload);
+                        console.println("Camera: Photo saved to SD card.");
+                     console.println(photo_file_name);
                     }
                     else
                     {
-                        console.println("Camera: Failed to upload photo to API.");
+                        console.println("Camera: Failed to write photo to SD card.");
                     }
                 }
-                else
+    
+                if (rlc::Config::is_camera_upload_to_api)
                 {
-                    console.println("Photo Upload: No cellular found.");
+                    if (hw.is_cellular_connected(true))
+                    {
+                        if (http.post_file_buffer(rlc::Config::api_url, camera.photo_buffer, camera.photo_buffer_size))
+                        {
+                            console.println("Camera: Photo uploaded to API");
+                            console.println(rlc::Config::api_url);
+    
+                            // Pause to save bandwidth
+                            console.println("Pausing for to save bandwidth.\n");
+                            sleep(rlc::Config::wait_after_image_upload);
+                        }
+                        else
+                        {
+                            console.println("Camera: Failed to upload photo to API.");
+                        }
+                    }
+                    else
+                    {
+                        console.println("Photo Upload: No cellular found.");
+                    }
                 }
-            }
 
-            camera.return_buffer();
-        }
+                camera.return_buffer();
+            }
+            else
+            {
+                console.println("Camera Error: " + camera.last_error);
+            }
+        } 
         else
         {
-            console.println("Camera Error: " + camera.last_error);
+            console.println("NIGHT: Camera off");
         }
     }
 

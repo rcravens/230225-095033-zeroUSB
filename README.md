@@ -1,12 +1,15 @@
 
-# 4G Trail Camera
+# 4G Camera
 
 This project started with [Adventure Time](https://www.youtube.com/@adventuretime5020) posting vides about it.
 
 #### Project Goal
-My goal is to create "trail camera" to take pictures of the properity are my local Radio Control Air Field. [TORKS.org](https://torks.org). 
+The goal is to create off grid remote camera to monitor a Radio Control Air Field. [TORKS.org](https://torks.org). 
 
-To keep the 4G data bandwidth down I'd like to send images only in daylight hours and when motion is detected. Because the board has a Grove interface I may include weather data. 
+The cam_server program can be used to post and read the images the camra pictures.
+
+To limit the 4G data bandwidth capture can be limited to daylight hours and a given rate.
+
 
 Pictures are written to the on board SD Card or uploaded to an Amazon S3 bucket or posted to a web API.  
 
@@ -96,8 +99,19 @@ These are Amazon links to the products I purchased to finsh this project.
 [Letgo 5pcs IPX IPEX-1 U.FL to SMA Female Pigtail](https://www.amazon.com/dp/B01HXU1PKS?psc=1&ref=ppx_yo2ov_dt_b_product_details)
 
 [LUORNG 4PCS 18650 SMD Battery Clip Holder](https://www.amazon.com/dp/B09N76T4GL?psc=1&ref=ppx_yo2ov_dt_b_product_details)
+ to and read the images from. 
 
 [1/4" NPT Strain Relief Nylon Cord](https://www.amazon.com/gp/product/B08MYM2TSJ/ref=ppx_yo_dt_b_asin_title_o00_s00?ie=UTF8&psc=1)
 
 
 ![All the parts](Doc/20230524_105729.jpg)
+
+#### Ideas / TODOs:
+
+These are just ideas that could be done.  I may or may not do them.
+
+Use the Grove (I2C) interface to collect weather data and send it.
+
+Turn on the WiFi for local camera capture.
+
+Use the 4G with the WiFi to create a HotSpot. 

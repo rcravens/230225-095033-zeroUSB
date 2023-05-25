@@ -34,7 +34,6 @@ namespace rlc
         String month_string();
         String to_yyyymmddhhmmss();
 
-
     private:
         bool validate();
     };
