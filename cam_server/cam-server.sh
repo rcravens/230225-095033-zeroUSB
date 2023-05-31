@@ -11,9 +11,9 @@
 ### END INIT INFO
 
 name="cam_server"
-dir="/usr/sbin/"
-cmd="$dir$name -debug"
-user="w5tsu"
+dir="/usr/bin/"
+cmd="$dir$name"
+user="bitnami"
 
 pid_file="/run/$name.pid"
 stdout_log="/var/log/$name.log"

@@ -16,10 +16,10 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"log/syslog"
 	"net/http"
 	"os"
 	"path/filepath"
+	"log"
 )
 
 // HTTP Form File
@@ -31,54 +31,41 @@ var secureFormFile string = "JrRdd728xJ5ewKT3Cg28dFYuwgbFXKU8"
 var debug bool // make debug a global variable
 
 // Directory to server files from.
-const uploadDirectory = "/images/"
-
-var log *syslog.Writer
+const uploadDirectory = "/images"
 
 func main() {
 	flag.BoolVar(&debug, "debug", false, "Enable debug logging")
 	flag.Parse()
 
 	fmt.Println("Camera file server. V1.2.0")
-	fmt.Println("Ready to receive file")
-
-	// Setting up syslog writer
-	log, err := syslog.New(syslog.LOG_NOTICE, "cam-server")
-	if err != nil {
-		log.Crit(fmt.Sprintf("Can't connect to syslog: %v", err))
-		return
-	}
-	log.Info("Camera file server started")
+	log.Println("Ready to recevie files")
 
 	// HTTP Namespace
-	http.HandleFunc("/upload/", uploadHandler)
+	http.HandleFunc("/upload", uploadHandler)
 	http.HandleFunc("/download/", downloadHandler)
+
 	error := http.ListenAndServe(":8080", nil)
 	if error != nil {
-		log.Crit("Unable to open port 8080! In use?")
-		fmt.Println("Unable to opne port 8080! In use?")
+		log.Println("Unable to open port 8080! In use?")
 	}
-	fmt.Println("Listening on http://torks.org:8080")
 }
 
 func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	// Process the incoming file
 	if r.Method != http.MethodPost {
 		if debug {
-			fmt.Println("Must use POST Method")
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			log.Println("Must use POST Method")
 		}
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
 	// Process the incoming file
 	file, handler, err := r.FormFile(secureFormFile)
 	if err != nil {
-		log.Info("Failed to receive file")
-		if debug 
-			fmt.Println("Failed to receive file")
-			http.Error(w, "Failed to receive file", http.StatusBadRequest)
-		}
+		ip := r.RemoteAddr
+		http.Error(w, "Failed to receive file", http.StatusBadRequest)
+		log.Printf("Failed to receive file from %v", ip)
 		return
 	}
 	defer file.Close()
@@ -86,9 +73,8 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	// Create the destination file
 	dst, err := os.Create(filepath.Join(uploadDirectory, handler.Filename))
 	if err != nil {
-		log.Info(fmt.Sprintf("Failed to create %v\n", filepath.Join(uploadDirectory, handler.Filename)))
 		if debug {
-			fmt.Printf("Failed to create %v\n", filepath.Join(uploadDirectory, handler.Filename))
+			log.Printf("Failed to create %v\n", filepath.Join(uploadDirectory, handler.Filename))
 			http.Error(w, "Failed to create file on server", http.StatusInternalServerError)
 		}
 		return
@@ -98,25 +84,22 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	// Copy the uploaded file to the destination file
 	_, err = io.Copy(dst, file)
 	if err != nil {
-		log.Info("Failed to save file")
 		if debug {
-			fmt.Println("Failed to save file")
+			log.Println("Failed to save file")
 			http.Error(w, "Failed to save file on server", http.StatusInternalServerError)
 		}
 		return
 	}
-	log.Info(fmt.Sprintf("Saved file %v\n", filepath.Join(uploadDirectory, handler.Filename)))
 	if debug {
 		fmt.Printf("Saved file %v\n", filepath.Join(uploadDirectory, handler.Filename))
 	}
 
-	log.Info("File upload succsessfull")
-	if debug {
-		fmt.Fprintf(w, "File uploaded successfull")
-	}
+	ip := r.RemoteAddr
+	log.Printf("File uploaded successfull from %v\n", ip)
 }
 
 func downloadHandler(w http.ResponseWriter, r *http.Request) {
+/*
 	// Process a file request
 	if r.Method != http.MethodGet {
 		if debug {
@@ -125,14 +108,13 @@ func downloadHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-
+*/
 	// Open the file requested
 	filePath := filepath.Join(uploadDirectory, r.URL.Path[len("/download/"):])
 	file, err := os.Open(filePath)
 	if err != nil {
-		log.Info(fmt.Sprintf("%v Not found\n", filePath))
 		if debug {
-			fmt.Printf("%v Not found\n", filePath)
+			log.Printf("%v Not found\n", filePath)
 			http.Error(w, "File not found", http.StatusNotFound)
 		}
 		return
@@ -146,14 +128,12 @@ func downloadHandler(w http.ResponseWriter, r *http.Request) {
 	// Copy the file to the response writer
 	_, err = io.Copy(w, file)
 	if err != nil {
-		log.Info("Failed to send file")
-		fmt.Println("Failed to send file")
-		http.Error(w, "Failed to download file", http.StatusInternalServerError)
+		ip := r.RemoteAddr
+		log.Printf("Failed to send file to %v\n", ip)
+		http.Error(w, "Failed to send file", http.StatusInternalServerError)
 		return
 	}
 
-	log.Info(fmt.Sprintf("Sent %v", filePath))
-	if debug {
-		fmt.Printf("Sent %v\n", filePath)
-	}
+	ip := r.RemoteAddr
+	log.Printf("Sent %v to %v\n", filePath, ip)
 }

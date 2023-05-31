@@ -19,7 +19,12 @@ The code is developed with VisualStudio and the PlatformIO plugin using C++.
 #### Hardware
 This code is written for:
 
-The LilyGO [T-SimCam](https://www.lilygo.cc/products/t-simcam) and the LilyGO 4G [T-PCIE SIM7600G-H](https://www.lilygo.cc/products/a-t-pcie).
+The LilyGO [T-SimCam](https://www.lilygo.cc/products/t-simcam) and the LilyGO 4G [T-PCIE SIM7600G-H](https://www.lilygo.cc/products/a-t-pcie). 
+
+GitHub support for these board are:
+[T-SimCam]()
+[PCIE SIM7600](https://github.com/Xinyuan-LilyGO/LilyGo-T-PCIE)  This is dependent on [TinyGSM](https://github.com/vshymanskyy/TinyGSM).
+
 
 **T-SIMCAM ESP32-S3** CAM board specifications:
 

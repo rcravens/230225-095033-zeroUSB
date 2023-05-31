@@ -154,21 +154,17 @@ void loop()
 //    }
 
     new_point.copy(gps.last_gps_point);
-    if (new_point.is_valid)
-    {
+    if (new_point.is_valid) {
         console.println("Date/Time: " + new_point.datetime.to_date_time_string());
     } 
-    else 
-    {
+    else {
         console.println("Invalid GPS data");
     }
-
 
     battery.refresh();          // Monitor the current battery voltage and state of charge
 
     String new_line = battery.to_csv();
-    if (!file_helper.append(battery_data_file_name, new_line))
-    {
+    if (!file_helper.append(battery_data_file_name, new_line)) {
         console.println("Failed to append battery data.");
         console.println(new_line);
     }
@@ -177,8 +173,7 @@ void loop()
 
     // Low power mode options
     unsigned long gps_refresh_period_sec = battery.is_low_battery_mode() ? rlc::Config::gps_refresh_period_low_battery_sec : rlc::Config::gps_refresh_period_default_sec;
-    if (battery.is_low_battery_mode() && !has_entered_low_power_mode)
-    {
+    if (battery.is_low_battery_mode() && !has_entered_low_power_mode) {
         sms.send("000", "Switched to low power mode. Come find me and swap batteries.");
         has_entered_low_power_mode = true;
     }
