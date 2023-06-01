@@ -2,3 +2,5 @@ cam_server/torks.org.crt
 cam_server/torks.org.key
 photo.jpg
 test_upload
+.pio
+.vscode
