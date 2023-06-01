@@ -2,10 +2,10 @@
 // Camera server
 //
 // This provides an http server to up and download images.
-// It is intended to be uses with a camrea capable pushing 
-// to an API.  
+// It is intended to be uses with a camrea capable pushing
+// to an API.
 //
-// Example: 
+// Example:
 //   curl -F "<secureFormFile>=@photo.jpg" <host>:8080/upload
 //
 // The Form File variable is used to provide a secret key used
@@ -16,10 +16,10 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
-	"log"
 )
 
 // HTTP Form File
@@ -28,13 +28,17 @@ import (
 var secureFormFile string = "JrRdd728xJ5ewKT3Cg28dFYuwgbFXKU8"
 
 // Print test output to console
-var debug bool // make debug a global variable
+var debug bool  // make debug a global variable
+var cert string // Path and filename for TLS certificate
+var key string  // Path and filename for TLS key
 
 // Directory to server files from.
 const uploadDirectory = "/images"
 
 func main() {
 	flag.BoolVar(&debug, "debug", false, "Enable debug logging")
+	flag.StringVar(&cert, "cert", "", "Path and filename for TLS certificate")
+	flag.StringVar(&key, "key", "", "Path and filename for TLS Key")
 	flag.Parse()
 
 	fmt.Println("Camera file server. V1.2.0")
@@ -44,9 +48,18 @@ func main() {
 	http.HandleFunc("/upload", uploadHandler)
 	http.HandleFunc("/download/", downloadHandler)
 
-	error := http.ListenAndServe(":8080", nil)
-	if error != nil {
-		log.Println("Unable to open port 8080! In use?")
+	if cert == "" {
+		error := http.ListenAndServe(":8080", nil)
+		if error != nil {
+			log.Println("Unable to open port 8080! In use?")
+			os.Exit(1)
+		}
+	} else {
+		error := http.ListenAndServeTLS(":8443", cert, key, nil)
+		if error != nil {
+			log.Println("Unable to open port 8443! In use?")
+			os.Exit(1)
+		}
 	}
 }
 
@@ -99,16 +112,16 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func downloadHandler(w http.ResponseWriter, r *http.Request) {
-/*
-	// Process a file request
-	if r.Method != http.MethodGet {
-		if debug {
-			fmt.Println("Must use GET method")
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	/*
+		// Process a file request
+		if r.Method != http.MethodGet {
+			if debug {
+				fmt.Println("Must use GET method")
+				http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			}
+			return
 		}
-		return
-	}
-*/
+	*/
 	// Open the file requested
 	filePath := filepath.Join(uploadDirectory, r.URL.Path[len("/download/"):])
 	file, err := os.Open(filePath)

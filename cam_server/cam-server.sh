@@ -15,6 +15,11 @@ dir="/usr/bin/"
 cmd="$dir$name"
 user="bitnami"
 
+# TLS Certs can be added with the -cert and -key options used on port 8443
+# if you don't supply a cert the server will be un-encrypted on port 8080
+cmd_opt="-debug -cert foo.crt -key foo.key"
+
+
 pid_file="/run/$name.pid"
 stdout_log="/var/log/$name.log"
 stderr_log="/var/log/$name.err"
@@ -35,9 +40,9 @@ case "$1" in
         echo "Starting $name"
         # cd "$dir"
         if [ -z "$user" ]; then
-            start-stop-daemon --start --background --pidfile "$pid_file" --make-pidfile --exec "$cmd" >> "$stdout_log" 2>> "$stderr_log"
+            start-stop-daemon --start --background --pidfile "$pid_file" --make-pidfile --exec "$cmd" -- $cmd_opt >> "$stdout_log" 2>> "$stderr_log"
         else
-            start-stop-daemon --start --background --pidfile "$pid_file" --make-pidfile --chuid "$user" --exec "$cmd" >> "$stdout_log" 2>> "$stderr_log"
+            start-stop-daemon --start --background --pidfile "$pid_file" --make-pidfile --chuid "$user" --exec "$cmd" -- $cmd_opt >> "$stdout_log" 2>> "$stderr_log"
         fi
     fi
     ;;
