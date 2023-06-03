@@ -29,7 +29,7 @@ var secureFormFile string = "JrRdd728xJ5ewKT3Cg28dFYuwgbFXKU8"
 
 // Print test output to console
 var debug bool  // make debug a global variable
-var cert string // Path and filename for TLS certificate
+var crt string // Path and filename for TLS certificate
 var key string  // Path and filename for TLS key
 
 // Directory to server files from.
@@ -37,7 +37,7 @@ const uploadDirectory = "/images"
 
 func main() {
 	flag.BoolVar(&debug, "debug", false, "Enable debug logging")
-	flag.StringVar(&cert, "cert", "", "Path and filename for TLS certificate")
+	flag.StringVar(&crt, "crt", "", "Path and filename for TLS certificate")
 	flag.StringVar(&key, "key", "", "Path and filename for TLS Key")
 	flag.Parse()
 
@@ -48,19 +48,29 @@ func main() {
 	http.HandleFunc("/upload", uploadHandler)
 	http.HandleFunc("/download/", downloadHandler)
 
-	if cert == "" {
-		error := http.ListenAndServe(":8080", nil)
-		if error != nil {
-			log.Println("Unable to open port 8080! In use?")
-			os.Exit(1)
+	go func() {
+		if error := http.ListenAndServe(":8080", nil); error != nil {
+			log.Fatalf("Unable to open port 8080! Error: %v\n",error )
+		} else {
+			if debug {
+			log.Println("8080 Open")
 		}
-	} else {
-		error := http.ListenAndServeTLS(":8443", cert, key, nil)
-		if error != nil {
-			log.Println("Unable to open port 8443! In use?")
-			os.Exit(1)
 		}
+	}()
+
+	if crt != "" {
+	    go func() {
+		if error := http.ListenAndServeTLS(":8443", crt, key, nil); error != nil {
+			log.Printf("Unable to open port 8443! %v\n", error)
+		} else {
+			if debug {
+			log.Println("8443 TLS Open")
+		}
+		}
+	    }()
 	}
+
+	select {}
 }
 
 func uploadHandler(w http.ResponseWriter, r *http.Request) {

@@ -10,14 +10,13 @@
 # Description:       Control the myservice daemon.
 ### END INIT INFO
 
-name="cam_server"
-dir="/usr/bin/"
-cmd="$dir$name"
+prg="cam_server"
+dir="/usr/sbin/"
+cmd="$dir$prg"
 user="bitnami"
 
-# TLS Certs can be added with the -cert and -key options used on port 8443
-# if you don't supply a cert the server will be un-encrypted on port 8080
-cmd_opt="-debug -cert foo.crt -key foo.key"
+# TLS Certs can be added with the -cert and -key options
+cmd_opt="-debug -crt /home/bitnami/torks.org.crt -key /home/bitnami/torks.org.key"
 
 
 pid_file="/run/$name.pid"
@@ -38,7 +37,7 @@ case "$1" in
         echo "Already started"
     else
         echo "Starting $name"
-        # cd "$dir"
+        cd "$dir"
         if [ -z "$user" ]; then
             start-stop-daemon --start --background --pidfile "$pid_file" --make-pidfile --exec "$cmd" -- $cmd_opt >> "$stdout_log" 2>> "$stderr_log"
         else
