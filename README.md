@@ -6,12 +6,11 @@ This project started with [Adventure Time](https://www.youtube.com/@adventuretim
 #### Project Goal
 The goal is to create off grid remote camera to monitor a Radio Control Air Field. [TORKS.org](https://torks.org). 
 
-The cam_server program can be used to post and read the images the camra pictures.
+Photos are written to the SD Card and posted to a remote API (web service). See the Configuration section.
+
+The cam_server program can be used to post and read the images the camra pictures. The camera can only post non-TLS at this time. Web browsers expect TLS pages to be all tls connections. So, the cam_server program supplies both TLS port 8443 and non-TLS port 8080 because of this.
 
 To limit the 4G data bandwidth capture can be limited to daylight hours and a given rate.
-
-
-Pictures are written to the on board SD Card or uploaded to an Amazon S3 bucket or posted to a web API.  
 
 #### Software
 The code is developed with VisualStudio and the PlatformIO plugin using C++. 
@@ -61,6 +60,11 @@ For testing I'm using the [WebHook.site](https://webhook.site).  *Free* posts ar
 * Use VS "open folder" to open the directory git just created
 * Edit config.cpp to your needs.
 * Plugin the board to your USB. Then Build and Upload the code.
+
+To build the cam_server program
+
+* install GoLang
+* run the Build.sh script in the cam_server directory
 
 ----
 #### Output
