@@ -8,7 +8,7 @@ The goal is to create off grid remote camera to monitor a Radio Control Air Fiel
 
 Photos are written to the SD Card and posted to a remote API (web service). See the Configuration section.
 
-The cam_server program can be used to post and read the images the camra pictures. The camera can only post non-TLS at this time. Web browsers expect TLS pages to be all tls connections. So, the cam_server program supplies both TLS port 8443 and non-TLS port 8080 because of this.
+The cam_server program can be used to post and read the images the camra pictures. The camera can only post non-TLS at this time. Web browsers expect TLS pages to be all tls connections. So, the cam_server program supplies both TLS port 8443 and non-TLS port 8080 because of this.  Files are kept in /images and archived in /images/archive.
 
 To limit the 4G data bandwidth capture can be limited to daylight hours and a given rate.
 

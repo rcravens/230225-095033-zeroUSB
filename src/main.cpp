@@ -1,5 +1,5 @@
 /*
-  4G Trail Camera 
+  4G Trail Camera
 */
 #include <Arduino.h>
 #include "Config.h"
@@ -27,6 +27,8 @@ rlc::AtCommand command_helper(SerialAT, console, false);
 rlc::Console console(SerialUSB);
 rlc::AtCommand command_helper(Serial1, console, false);
 #endif
+
+const bool debug = true;
 
 const char content_type[] = "application/x-www-form-urlencoded";
 
@@ -74,18 +76,18 @@ void setup()
 
     sleep(10);
     console.println("\n------------------------------------------NEW START------------------------------------------");
-#ifdef maduino
+    #ifdef maduino
     console.println("Maduino Zero 4G LTE(SIM7600X)");
     console.println("                         Board: https://www.makerfabs.com/maduino-zero-4g-lte-sim7600.html");
     console.println("                    Board Wiki: https://wiki.makerfabs.com/Maduino_Zero_4G_LTE.html");
     console.println("                  Board Github: https://github.com/Makerfabs/Maduino-Zero-4G-LTE");
     console.println("           SIM7600 Command Set: https://github.com/Makerfabs/Maduino-Zero-4G-LTE/blob/main/A76XX%20Series_AT_Command_Manual_V1.05.pdf");
-#endif
-#ifdef tsimcam
+    #endif
+    #ifdef tsimcam
     console.println("T-SIMCAM ESP32-S3 LTE(SIM7600X)");
     console.println("                         Board: https://www.lilygo.cc/products/t-simcam");
     console.println("                  Board Github: https://github.com/Xinyuan-LilyGO/LilyGo-Camera-Series");
-#endif
+    #endif
     console.println("           SIM7600 Command Set: https://github.com/Makerfabs/Maduino-Zero-4G-LTE/blob/main/A76XX%20Series_AT_Command_Manual_V1.05.pdf");
     console.println("               Twilio SIM Card: https://www.twilio.com/docs/iot/supersim");
     console.println("---------------------------------------------------------------------------------------------");
@@ -97,10 +99,9 @@ void setup()
     console.println("                          IMEI: " + hw.imei);
     console.println("---------------------------------------------------------------------------------------------");
 
-    if (!is_sd_ready || !is_module_on || !is_module_configured)
-    {
+    if (!is_sd_ready || !is_module_on || !is_module_configured) {
         console.println("\n\n!!!! ESP restart in 5 seconds !!!!!\n\n");
-        sleep(5);
+        sleep(1);
         esp_restart();
     }
 
@@ -112,8 +113,7 @@ void setup()
     // deserialize from SD card the last gps point that was cached
     //
     String last_point_content = file_helper.read_content(last_point_file_name);
-    if (last_point_content.length() > 0)
-    {
+    if (last_point_content.length() > 0) {
         last_point_cached.deserialize(last_point_content);
     }
 
@@ -121,8 +121,7 @@ void setup()
 
     console.println("Battery Data");
     file_helper.print_all_lines(battery_data_file_name);
-    if (false || file_helper.line_count(battery_data_file_name) > 500)
-    {
+    if (false || file_helper.line_count(battery_data_file_name) > 500) {
         file_helper.remove(battery_data_file_name);
     }
     //console.println("---------------------------------------------------------------------------------------------");
@@ -137,7 +136,7 @@ void setup()
     camera.initialize();
 
     // console.println("\n\n");
-    
+
 }
 
 
@@ -145,23 +144,25 @@ void loop()
 {
     console.println("------------------------------TOP-OF-THE-LOOP------------------------------------------------");
 
+    uint fail_count = 0;
+
     new_point.copy(gps.last_gps_point);
-//    while ( ! hw.is_cellular_connected(true))
-//    while ( ! new_point.is_valid) {
-//        new_point.copy(gps.last_gps_point);
-//        console.println("Waiting for GPS lock.");
-//        sleep( 15 );
-//    }
+    //    while ( ! hw.is_cellular_connected(true))
+    //    while ( ! new_point.is_valid) {
+    //        new_point.copy(gps.last_gps_point);
+    //        console.println("Waiting for GPS lock.");
+    //        sleep( 15 );
+    //    }
 
     new_point.copy(gps.last_gps_point);
     if (new_point.is_valid) {
         console.println("Date/Time: " + new_point.datetime.to_date_time_string());
-    } 
+    }
     else {
         console.println("Invalid GPS data");
     }
 
-    battery.refresh();          // Monitor the current battery voltage and state of charge
+    battery.refresh();           // Monitor the current battery voltage and state of charge
 
     String new_line = battery.to_csv();
     if (!file_helper.append(battery_data_file_name, new_line)) {
@@ -184,8 +185,7 @@ void loop()
     // Print cached GPS data
     console.println("Old GPS Data: " + last_point_cached.to_string());
 
-    if (true && gps.current_location())
-    {
+    if (true && gps.current_location()) {
         new_point.copy(gps.last_gps_point);
         console.println("New GPS Data: " + new_point.to_string());
 
@@ -195,19 +195,15 @@ void loop()
         //
         // This conserves battery by minimizing the LTE transmit power
         //
-        if (new_point.is_valid)
-        {
+        if (new_point.is_valid) {
             rlc::GpsCalculator calc(new_point, last_point_cached);
 
-            if (!last_point_cached.is_valid || calc.distance_in_feet >= rlc::Config::gps_distance_threshold_feet || calc.time_diff_in_seconds >= rlc::Config::gps_max_time_threshold_seconds)
-            {
+            if (!last_point_cached.is_valid || calc.distance_in_feet >= rlc::Config::gps_distance_threshold_feet || calc.time_diff_in_seconds >= rlc::Config::gps_max_time_threshold_seconds) {
                 String new_line = new_point.to_string();
-                if (!file_helper.append(gps_data_file_name, new_line))
-                {
+                if (!file_helper.append(gps_data_file_name, new_line)) {
                     console.println("Failed to cache new point.");
                 }
-                else
-                {
+                else {
                     last_point_cached.copy(new_point);
 
                     // Serialize this last cachced point to the SD card
@@ -223,17 +219,14 @@ void loop()
                     // can_sleep = true;
                 }
             }
-            else
-            {
+            else {
                 console.println("New point not far enough away from previously recorded point.");
-
                 // can_sleep = true;
             }
 
             // Adjust the refresh period based on velocity
             //
-            if (calc.is_valid)
-            {
+            if (calc.is_valid) {
                 console.println(calc.to_string());
                 gps_refresh_period_sec = battery.is_low_battery_mode() ? rlc::Config::gps_refresh_period_low_battery_sec : calc.recommended_gps_refresh_period_sec;
             }
@@ -244,19 +237,15 @@ void loop()
     //
     // console.println("\n");
     console.println("Number of points in cache=" + String(num_points_in_cache));
-    if (num_points_in_cache >= rlc::Config::api_num_gps_points_in_payload)
-    {
-        if (hw.is_cellular_connected(true))
-        {
+    if (num_points_in_cache >= rlc::Config::api_num_gps_points_in_payload) {
+        if (hw.is_cellular_connected(true)) {
             String lines = file_helper.strip_lines_from_top(gps_data_file_name, rlc::Config::api_max_points_per_post);
-            if (lines.length() > 0)
-            {
+            if (lines.length() > 0) {
                 lines.trim();
 
                 String content = "millis=" + String(millis()) + "&gps_refresh_period_sec=" + String(gps_refresh_period_sec) + "&" + battery.to_http_post() + "&" + hw.to_http_post() + "&total_distance_traveled_feet=" + String(total_distance_traveled_feet, 2) + "&distance_since_last_post_feet=" + String(distance_since_last_post_feet, 2) + "&total_points_since_power_on=" + String(total_points_sent + num_points_in_cache) + "&num_points=" + String(num_points_in_cache) + "&lines=" + lines;
 
-                if (http.post(rlc::Config::api_url, content, content_type))
-                {
+                if (http.post(rlc::Config::api_url, content, content_type)) {
                     console.println("API - " + String(content.length()) + " bytes sent");
 
                     total_points_sent += num_points_in_cache;
@@ -265,21 +254,21 @@ void loop()
 
                     num_points_in_cache = 0;
                 }
-                else
-                {
-                    file_helper.append(gps_data_file_name, lines); // re-cache these points as they failed to send
+                else {
+                                 // re-cache these points as they failed to send
+                    file_helper.append(gps_data_file_name, lines);
 
                     console.println("Failed to send content to API. " + String(lines.length()) + " bytes added back to cache.");
                 }
             }
-            else
-            {
+            else {
                 console.println("No line data read from file. last error = " + file_helper.last_error);
             }
+            fail_count = 0;
         }
-        else
-        {
+        else {
             console.println("No cellular found.");
+            fail_count++;
         }
     }
 
@@ -288,59 +277,53 @@ void loop()
 
         // Collect a new photo
         //
-        if (rlc::Config::is_camera_save_to_sd || rlc::Config::is_camera_upload_to_api)
-        {
-            if (camera.is_initialized && camera.take_photo())
-            {
+        if (rlc::Config::is_camera_save_to_sd || rlc::Config::is_camera_upload_to_api) {
+            if (camera.is_initialized && camera.take_photo()) {
                 console.println("Camera: Photo was taken.");
 
-                if (rlc::Config::is_camera_save_to_sd)
-                {
+                if (rlc::Config::is_camera_save_to_sd) {
                     photo_file_name = "/" + new_point.datetime.to_yyyymmddhhmmss() + date_photo_file_name;
-                    if (file_helper.write(photo_file_name, camera.photo_buffer, camera.photo_buffer_size))
-                    {
+                    if (file_helper.write(photo_file_name, camera.photo_buffer, camera.photo_buffer_size)) {
                         console.println("Camera: Photo saved to SD card.");
-                     console.println(photo_file_name);
+                        console.println(photo_file_name);
+                        fail_count = 0;
                     }
-                    else
-                    {
+                    else {
                         console.println("Camera: Failed to write photo to SD card.");
+                        fail_count++;
                     }
                 }
-    
-                if (rlc::Config::is_camera_upload_to_api)
-                {
-                    if (hw.is_cellular_connected(true))
-                    {
-                        if (http.post_file_buffer(rlc::Config::api_url, camera.photo_buffer, camera.photo_buffer_size))
-                        {
+
+                if (rlc::Config::is_camera_upload_to_api) {
+                    if (hw.is_cellular_connected(true)) {
+                        if (http.post_file_buffer(rlc::Config::api_url, camera.photo_buffer, camera.photo_buffer_size)) {
                             console.println("Camera: Photo uploaded to API");
                             console.println(rlc::Config::api_url);
-    
+
                             // Pause to save bandwidth
                             console.println("Pausing for to save bandwidth.\n");
                             sleep(rlc::Config::wait_after_image_upload);
+                            fail_count = 0;
                         }
-                        else
-                        {
+                        else {
                             console.println("Camera: Failed to upload photo to API.");
+                            fail_count++;
                         }
                     }
-                    else
-                    {
+                    else {
                         console.println("Photo Upload: No cellular found.");
                     }
                 }
 
                 camera.return_buffer();
+                fail_count = 0;
             }
-            else
-            {
+            else {
                 console.println("Camera Error: " + camera.last_error);
+                fail_count++;
             }
-        } 
-        else
-        {
+        }
+        else {
             console.println("NIGHT: Camera off");
         }
     }
@@ -350,24 +333,32 @@ void loop()
     //hw.send_module_output_to_console_out();
     //hw.send_console_input_to_module();
 
+    if (fail_count > 10) {
+        console.println("\n\n!!!! ESP restart in 5 seconds !!!!!\n\n");
+        sleep(1);
+        esp_restart();
+    }
+    if ( debug ) {
+        console.println("Fail count = " + fail_count );
+    }
     sleep(10);
-    
+
     // Sleep
     //
-/*
-    if (can_sleep && gps_refresh_period_sec > 0)
-    {
-        uint gps_refresh_period_ms = gps_refresh_period_sec * 1000;
-        if (gps_refresh_period_sec < 120 && !battery.is_low_battery_mode())
+    /*
+        if (can_sleep && gps_refresh_period_sec > 0)
         {
-            // High gps collection rates (< 2min) / Unlimited power
-            sleep_helper.mcu_delay_module_on(gps_refresh_period_ms);
+            uint gps_refresh_period_ms = gps_refresh_period_sec * 1000;
+            if (gps_refresh_period_sec < 120 && !battery.is_low_battery_mode())
+            {
+                // High gps collection rates (< 2min) / Unlimited power
+                sleep_helper.mcu_delay_module_on(gps_refresh_period_ms);
+            }
+            else
+            {
+                // Low gps collection rates (> 2min) / Limited power
+                sleep_helper.mcu_deep_sleep_module_off(gps_refresh_period_ms);
+            }
         }
-        else
-        {
-            // Low gps collection rates (> 2min) / Limited power
-            sleep_helper.mcu_deep_sleep_module_off(gps_refresh_period_ms);
-        }
-    }
-*/
+    */
 }

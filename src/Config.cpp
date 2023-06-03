@@ -3,12 +3,12 @@
 namespace rlc
 {
 
-//  Application settings
+    //  Application settings
 
     // The API URL where data will be HTTP POSTed to
     const char Config::api_url[] = "http://torks.org:8080/upload";
 
-    // Upload Form key - TODO: Add to Http.cpp file 
+    // Upload Form key - TODO: Add to Http.cpp file
     const char Config::formkey[] = "JrRdd728xJ5ewKT3Cg28dFYuwgbFXKU8";
 
     // Save the most recent photo to the SD card
@@ -22,7 +22,6 @@ namespace rlc
 
     // Pause uploading camera images at night
     const bool Config::is_pause_camera_at_night = true;
-
 
     // The number of points that are cached before sending to the API
     const unsigned long Config::api_num_gps_points_in_payload = 1;
@@ -48,8 +47,7 @@ namespace rlc
     // The maximum time (s) between the last cached point and the new point regardless of distance
     const float Config::gps_max_time_threshold_seconds = 120;
 
-
-// Hardware settings
+    // Hardware settings
 
     // The smallest voltage (v) where the board no longer functions
     //

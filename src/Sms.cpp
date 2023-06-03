@@ -2,12 +2,10 @@
 
 namespace rlc
 {
-    Sms::Sms(AtCommand &command_helper) : _command_helper(command_helper)
-    {
+    Sms::Sms(AtCommand &command_helper) : _command_helper(command_helper) {
     }
 
-    bool Sms::send(String number, String message)
-    {
+    bool Sms::send(String number, String message) {
         // This is a Twilio Super SIM special SMS call that is configured
         //  to forward the text message to the URL configured in the
         //  Twilio console. You cannot send actual text messages using
