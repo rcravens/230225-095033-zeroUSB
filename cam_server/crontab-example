@@ -1,0 +1,8 @@
+# Archive photos
+* * * * * ~/bin/photo-archive.sh
+
+# Make a movie out of the photos
+0 * * * * ~/bin/make-mp4.sh
+
+# Clean yesterdays archive photos
+2 0 * * * tar --remove-files -zcf /images/torks-`date +"%y-%m-%dT%h-%m-%s"`.tgz /images/archive/*.jpg

@@ -20,6 +20,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"time"
 )
 
 // HTTP Form File
@@ -28,20 +29,22 @@ import (
 var secureFormFile string = "JrRdd728xJ5ewKT3Cg28dFYuwgbFXKU8"
 
 // Print test output to console
-var debug bool  // make debug a global variable
+var debug bool // make debug a global variable
 var crt string // Path and filename for TLS certificate
-var key string  // Path and filename for TLS key
+var key string // Path and filename for TLS key
 
 // Directory to server files from.
 const uploadDirectory = "/images"
+const archiveDirectory = "/images/archive"
 
 func main() {
+
 	flag.BoolVar(&debug, "debug", false, "Enable debug logging")
 	flag.StringVar(&crt, "crt", "", "Path and filename for TLS certificate")
 	flag.StringVar(&key, "key", "", "Path and filename for TLS Key")
 	flag.Parse()
 
-	fmt.Println("Camera file server. V1.2.0")
+	fmt.Println("Camera file server. V1.2.1")
 	log.Println("Ready to recevie files")
 
 	// HTTP Namespace
@@ -50,30 +53,43 @@ func main() {
 
 	go func() {
 		if error := http.ListenAndServe(":8080", nil); error != nil {
-			log.Fatalf("Unable to open port 8080! Error: %v\n",error )
+			log.Fatalf("Unable to open port 8080! Error: %v\n", error)
 		} else {
 			if debug {
-			log.Println("8080 Open")
-		}
+				log.Println("8080 Open")
+			}
 		}
 	}()
 
 	if crt != "" {
-	    go func() {
-		if error := http.ListenAndServeTLS(":8443", crt, key, nil); error != nil {
-			log.Printf("Unable to open port 8443! %v\n", error)
-		} else {
-			if debug {
-			log.Println("8443 TLS Open")
-		}
-		}
-	    }()
+		go func() {
+			if error := http.ListenAndServeTLS(":8443", crt, key, nil); error != nil {
+				log.Printf("Unable to open port 8443! %v\n", error)
+			} else {
+				if debug {
+					log.Println("8443 TLS Open")
+				}
+			}
+		}()
 	}
 
+	if debug {
+		log.Println("Lissioning on 8080")
+	}
 	select {}
 }
 
 func uploadHandler(w http.ResponseWriter, r *http.Request) {
+
+	currentTime := time.Now()
+	fileTime := fmt.Sprintf("%4d-%02d-%02dT%02d:%02d:%02d-",
+		currentTime.Year(),
+		currentTime.Month(),
+		currentTime.Day(),
+		currentTime.Hour(),
+		currentTime.Hour(),
+		currentTime.Second())
+
 	// Process the incoming file
 	if r.Method != http.MethodPost {
 		if debug {
@@ -104,6 +120,17 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer dst.Close()
 
+	// Create archive destination file
+	adst, err := os.Create(filepath.Join(archiveDirectory, fileTime+handler.Filename))
+	if err != nil {
+		if debug {
+			log.Printf("Failed to create %v\n", filepath.Join(archiveDirectory, fileTime+handler.Filename))
+			http.Error(w, "Failed to create file on server", http.StatusInternalServerError)
+		}
+		return
+	}
+	defer adst.Close()
+
 	// Copy the uploaded file to the destination file
 	_, err = io.Copy(dst, file)
 	if err != nil {
@@ -115,6 +142,23 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	if debug {
 		fmt.Printf("Saved file %v\n", filepath.Join(uploadDirectory, handler.Filename))
+	}
+
+	// Copy the uploaded file to the destination file
+	_, err = file.Seek(0, io.SeekStart)
+	if err {
+		log.PrintLn("Faile to rewind file.")
+	}
+	_, err = io.Copy(adst, file)
+	if err != nil {
+		if debug {
+			log.Println("Failed to save file")
+			http.Error(w, "Failed to save file on server", http.StatusInternalServerError)
+		}
+		return
+	}
+	if debug {
+		fmt.Printf("Saved archive file %v\n", filepath.Join(archiveDirectory, fileTime+handler.Filename))
 	}
 
 	ip := r.RemoteAddr
