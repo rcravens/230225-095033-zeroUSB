@@ -3,13 +3,11 @@
 
 namespace rlc
 {
-    double GpsPoint::convert_nmea_to_degrees(String val_str)
-    {
+    double GpsPoint::convert_nmea_to_degrees(String val_str) {
         // NMEA Format: DDDMM.MMMMM
         //
         int period_pos = val_str.indexOf(".");
-        if (period_pos < 0)
-        {
+        if (period_pos < 0) {
             return 99999.99;
         }
 
@@ -19,8 +17,7 @@ namespace rlc
         return degrees + minutes / 60;
     }
 
-    GpsPoint GpsPoint::from_nmea_str(String &str)
-    {
+    GpsPoint GpsPoint::from_nmea_str(String &str) {
         unsigned int year = 0;
         unsigned int month = 0;
         unsigned int day = 0;
@@ -31,8 +28,7 @@ namespace rlc
         double lng = 0;
         double alt = 0.0;
 
-        if (str.indexOf("+CGPSINFO: ") == 0)
-        {
+        if (str.indexOf("+CGPSINFO: ") == 0) {
             // Parsing: +CGPSINFO: 4300.471406,N,08932.266537,W,200323,183805.0,79.2,0.0,0.0
             //
             int start = str.indexOf(":") + 2;
@@ -43,8 +39,7 @@ namespace rlc
             start = end + 1;
             end = str.indexOf(",", start);
             String lat_hemisphere = str.substring(start, end);
-            if (lat_hemisphere == "S")
-            {
+            if (lat_hemisphere == "S") {
                 lat = -lat;
             }
 
@@ -56,8 +51,7 @@ namespace rlc
             start = end + 1;
             end = str.indexOf(",", start);
             String lng_hemisphere = str.substring(start, end);
-            if (lng_hemisphere == "W")
-            {
+            if (lng_hemisphere == "W") {
                 lng = -lng;
             }
 
@@ -88,20 +82,16 @@ namespace rlc
         return pt;
     }
 
-    GpsPoint::GpsPoint() : latitude(0.0), longitude(0.0), altitude(0.0), datetime()
-    {
+    GpsPoint::GpsPoint() : latitude(0.0), longitude(0.0), altitude(0.0), datetime() {
     }
 
-    GpsPoint::GpsPoint(DateTime &datetime, double lat, double lng) : latitude(lat), longitude(lng), altitude(0.0), datetime(datetime)
-    {
+    GpsPoint::GpsPoint(DateTime &datetime, double lat, double lng) : latitude(lat), longitude(lng), altitude(0.0), datetime(datetime) {
     }
 
-    GpsPoint::GpsPoint(DateTime &datetime, double lat, double lng, double alt) : latitude(lat), longitude(lng), altitude(alt), datetime(datetime)
-    {
+    GpsPoint::GpsPoint(DateTime &datetime, double lat, double lng, double alt) : latitude(lat), longitude(lng), altitude(alt), datetime(datetime) {
     }
 
-    bool GpsPoint::copy(GpsPoint &pt)
-    {
+    bool GpsPoint::copy(GpsPoint &pt) {
         datetime.set(pt.datetime.year, pt.datetime.month, pt.datetime.day, pt.datetime.hour, pt.datetime.minute, pt.datetime.second);
         latitude = pt.latitude;
         longitude = pt.longitude;
@@ -110,92 +100,79 @@ namespace rlc
         return validate();
     }
 
-    String GpsPoint::to_string()
-    {
-        if (!is_valid)
-        {
+    String GpsPoint::to_string() {
+        if (!is_valid) {
             //return "Invalid GPS Point";
         }
 
         return "Date/Time: " + datetime.to_date_time_string() + ", Latitude: " + String(latitude, 6) + ", Longitude: " + String(longitude, 6) + ", Altitude: " + String(altitude, 6);
     }
 
-    double GpsPoint::distance_in_miles(GpsPoint &from)
-    {
+    double GpsPoint::distance_in_miles(GpsPoint &from) {
         GpsCalculator calc(*this, from);
         return calc.distance_in_miles;
     }
 
-    String GpsPoint::serialize()
-    {
+    String GpsPoint::serialize() {
         // format: y,m,d,h,m,s,lat,lng,alt
         String str = String(datetime.year) + "," + String(datetime.month) + "," + String(datetime.day) + "," + String(datetime.hour) + "," + String(datetime.minute) + "," + String(datetime.second) + "," + String(latitude, 6) + "," + String(longitude, 6) + "," + String(altitude, 6);
 
         return str;
     }
 
-    bool GpsPoint::deserialize(String &str)
-    {
+    bool GpsPoint::deserialize(String &str) {
         int start = 0;
         int end = str.indexOf(",", start);
-        if (end == -1)
-        {
+        if (end == -1) {
             return false;
         }
         unsigned int year = str.substring(start, end).toInt();
 
         start = end + 1;
         end = str.indexOf(",", start);
-        if (end == -1)
-        {
+        if (end == -1) {
             return false;
         }
         unsigned int month = str.substring(start, end).toInt();
 
         start = end + 1;
         end = str.indexOf(",", start);
-        if (end == -1)
-        {
-          return false;
+        if (end == -1) {
+            return false;
         }
         unsigned int day = str.substring(start, end).toInt();
 
         start = end + 1;
         end = str.indexOf(",", start);
-        if (end == -1)
-        {
+        if (end == -1) {
             return false;
         }
         unsigned int hour = str.substring(start, end).toInt();
 
         start = end + 1;
         end = str.indexOf(",", start);
-        if (end == -1)
-        {
-           return false;
+        if (end == -1) {
+            return false;
         }
         unsigned int minute = str.substring(start, end).toInt();
 
         start = end + 1;
         end = str.indexOf(",", start);
-        if (end == -1)
-        {
-           return false;
+        if (end == -1) {
+            return false;
         }
         unsigned int second = str.substring(start, end).toInt();
 
         start = end + 1;
         end = str.indexOf(",", start);
-        if (end == -1)
-        {
-           return false;
+        if (end == -1) {
+            return false;
         }
         double lat = str.substring(start, end).toDouble();
 
         start = end + 1;
         end = str.indexOf(",", start);
-        if (end == -1)
-        {
+        if (end == -1) {
             return false;
         }
         double lng = str.substring(start, end).toDouble();
@@ -216,22 +193,18 @@ namespace rlc
             PRIVATE METHODS
     ------------------------------------------------------------------------------------------*/
 
-    bool GpsPoint::validate()
-    {
+    bool GpsPoint::validate() {
         is_valid = true;
 
-        if (!datetime.is_valid)
-        {
+        if (!datetime.is_valid) {
             is_valid = false;
         }
 
-        if (latitude < -90 || latitude > 90)
-        {
+        if (latitude < -90 || latitude > 90) {
             is_valid = false;
         }
 
-        if (longitude < -180 || longitude > 180)
-        {
+        if (longitude < -180 || longitude > 180) {
             is_valid = false;
         }
 

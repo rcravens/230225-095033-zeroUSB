@@ -3,33 +3,28 @@
 namespace rlc
 {
     Battery::Battery(float zero_percent_voltage, float max_voltage, float low_battery_mode_percent) : _zero_percent_voltage(zero_percent_voltage),
-                                                                                                      _max_voltage(max_voltage),
-                                                                                                      _low_battery_mode_percent(low_battery_mode_percent)
-    {
+        _max_voltage(max_voltage),
+    _low_battery_mode_percent(low_battery_mode_percent) {
         // analogReference(AR_DEFAULT);  // seems to function without this board specific call
 
-        analogReadResolution(12); // 2^12 = 4096 (0 - 4095)
+        analogReadResolution(12);// 2^12 = 4096 (0 - 4095)
 
         refresh();
     }
 
-    String Battery::to_csv()
-    {
+    String Battery::to_csv() {
         return String(_millis) + "," + String(_adc_value) + "," + String(_current_voltage) + "," + String(_current_percent);
     }
 
-    String Battery::to_string()
-    {
+    String Battery::to_string() {
         return "Battery Millis=" + String(_millis) + ", ADC Value=" + String(_adc_value) + ", Voltage=" + String(_current_voltage) + ", Percent=" + String(_current_percent);
     }
 
-    String Battery::to_http_post()
-    {
+    String Battery::to_http_post() {
         return "battery_millis=" + String(_millis) + "&battery_adc_value=" + String(_adc_value) + "&battery_voltage=" + String(_current_voltage) + "&battery_percent=" + String(_current_percent);
     }
 
-    void Battery::refresh()
-    {
+    void Battery::refresh() {
         _millis = millis();
 
         sample_adc();
@@ -41,11 +36,11 @@ namespace rlc
             PRIVATE METHODS
     ------------------------------------------------------------------------------------------*/
 
-    void Battery::sample_adc()
-    {
+    void Battery::sample_adc() {
         // The board has a voltage divider connected to the batter and the center point connected to this pin
         //
-        _adc_value = analogRead(BATTERY_PIN); // 12bit mode, 0 to 4095 corresponding to 0 to 3.3v (ADC reference voltage)
+                                 // 12bit mode, 0 to 4095 corresponding to 0 to 3.3v (ADC reference voltage)
+        _adc_value = analogRead(BATTERY_PIN);
 
         //  _adc_value = (vbat / 2)*(4095/3.3)
         //
@@ -58,17 +53,18 @@ namespace rlc
         // 3.88V multimeter = 2426 adc value
         //
         // float factor = 2.0 // use the default
-        const float factor = 2.0; // 1.984636;              // 3.88 * 4095 / (3.3 * 2426);
+        const float factor = 2.0;// 1.984636;              // 3.88 * 4095 / (3.3 * 2426);
 
-        const float adc_reference_voltage = 3.3; // TODO: does droop as the battery voltage drops?
+                                 // TODO: does droop as the battery voltage drops?
+        const float adc_reference_voltage = 3.3;
 
-        const int number_of_levels = 4095; // 2^12
+                                 // 2^12
+        const int number_of_levels = 4095;
 
         _current_voltage = factor * _adc_value * adc_reference_voltage / number_of_levels;
     }
 
-    void Battery::compute_percent()
-    {
+    void Battery::compute_percent() {
         // Based on the following
         //
         //  0 percent when current_voltage = zero_percent_voltage
@@ -86,12 +82,10 @@ namespace rlc
 
         _current_percent = 100 * (_current_voltage - _zero_percent_voltage) / (_max_voltage - _zero_percent_voltage);
 
-        if (_current_percent < 0)
-        {
+        if (_current_percent < 0) {
             _current_percent = 0;
         }
-        if (_current_percent > 100)
-        {
+        if (_current_percent > 100) {
             _current_percent = 100;
         }
     }
